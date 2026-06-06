@@ -2,7 +2,22 @@
 {% block title %}Cadastrar — DJ VRC Booking{% endblock %}
 {% block content %}
 <div class="auth-wrap">
-  <div class="auth-card">
+  <div class="auth-card" style="max-width:520px;">
+
+    {% if via_discord %}
+    <!-- Header quando veio pelo Discord -->
+    <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
+      {% if prefill.discord_avatar %}
+        <img src="https://cdn.discordapp.com/avatars/{{ prefill.discord_id }}/{{ prefill.discord_avatar }}.png"
+             style="width:56px; height:56px; border-radius:50%; border:2px solid var(--accent);"
+             onerror="this.style.display='none'" />
+      {% endif %}
+      <div>
+        <div class="auth-title" style="font-size:1.6rem; margin-bottom:0;">OLA, {{ prefill.discord_username }}!</div>
+        <p style="font-size:.85rem; color:var(--muted); margin:0;">Discord conectado. Complete seu cadastro.</p>
+      </div>
+    </div>
+    {% else %}
     <div class="auth-title">CADASTRAR</div>
     <p class="auth-sub">Crie sua conta gratuitamente</p>
 
@@ -10,35 +25,76 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.08.11 18.1.132 18.115a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
       Cadastrar com Discord
     </a>
-
     <div class="divider">ou com e-mail</div>
+    {% endif %}
 
     <form method="post">
+
+      <!-- Hidden fields do Discord (presentes apenas quando via_discord=True) -->
+      {% if via_discord %}
+        <input type="hidden" name="discord_id"       value="{{ prefill.discord_id }}" />
+        <input type="hidden" name="discord_username" value="{{ prefill.discord_username }}" />
+        <input type="hidden" name="discord_avatar"   value="{{ prefill.discord_avatar }}" />
+      {% endif %}
+
       <div class="form-group">
         <label class="form-label">Username</label>
-        <input class="form-input" type="text" name="username" value="{{ username or '' }}" placeholder="seu_username" required />
+        <input class="form-input" type="text" name="username"
+               value="{{ prefill.username if prefill else '' }}"
+               placeholder="seu_username" required />
+        <div class="form-hint">Como você será identificado na plataforma</div>
       </div>
+
       <div class="form-group">
         <label class="form-label">E-mail</label>
-        <input class="form-input" type="email" name="email" value="{{ email or '' }}" placeholder="seu@email.com" required />
+        <input class="form-input" type="email" name="email"
+               value="{{ prefill.email if prefill else '' }}"
+               placeholder="seu@email.com" required
+               {% if via_discord and prefill.email %}style="opacity:.7;"{% endif %} />
+        {% if via_discord and prefill.email %}
+          <div class="form-hint">Preenchido automaticamente pelo Discord</div>
+        {% endif %}
       </div>
+
+      {% if not via_discord %}
       <div class="form-group">
         <label class="form-label">Senha</label>
-        <input class="form-input" type="password" name="password" placeholder="mínimo 8 caracteres" required minlength="8" />
+        <input class="form-input" type="password" name="password"
+               placeholder="minimo 8 caracteres" required minlength="8" />
       </div>
-      <div class="form-group">
-        <label class="form-label">Sou um...</label>
-        <select class="form-select" name="role">
-          <option value="contractor" {% if role == 'contractor' %}selected{% endif %}>Contratante (quero contratar DJs)</option>
-          <option value="dj" {% if role == 'dj' %}selected{% endif %}>DJ (quero oferecer meus serviços)</option>
-        </select>
+      {% endif %}
+
+      <!-- Pergunta sobre DJ -->
+      <div class="card" style="margin-bottom:1.25rem; padding:1.25rem;">
+        <div style="font-size:.875rem; font-weight:500; color:var(--text); margin-bottom:.75rem;">
+          Voce quer oferecer servicos como DJ?
+        </div>
+        <p style="font-size:.8rem; color:var(--muted); margin-bottom:1rem; line-height:1.6;">
+          Voce pode ser contratante e DJ ao mesmo tempo. Se marcar esta opcao, podera
+          criar seu perfil de DJ e receber propostas de eventos.
+        </p>
+        <label class="form-check" style="align-items:flex-start; gap:.75rem;">
+          <input type="checkbox" name="is_dj" style="margin-top:.2rem;"
+                 {% if is_dj %}checked{% endif %} />
+          <div>
+            <div style="color:var(--text); font-weight:500;">Sim, quero ser DJ na plataforma</div>
+            <div style="font-size:.75rem; color:var(--muted);">
+              Voce podera criar seu perfil de DJ apos o cadastro
+            </div>
+          </div>
+        </label>
       </div>
-      <button type="submit" class="btn btn-primary btn-block btn-lg">Criar conta</button>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg">
+        {% if via_discord %}Criar minha conta{% else %}Criar conta{% endif %}
+      </button>
     </form>
 
+    {% if not via_discord %}
     <div class="auth-footer">
-      Já tem conta? <a href="{{ url_for('auth.login') }}">Entrar</a>
+      Ja tem conta? <a href="{{ url_for('auth.login') }}">Entrar</a>
     </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}
