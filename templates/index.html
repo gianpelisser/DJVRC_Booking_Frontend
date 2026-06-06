@@ -20,9 +20,18 @@
       {% endif %}
     </div>
     <div class="hero-stats">
-      <div><div class="hero-stat-num">120+</div><div class="hero-stat-label">DJs cadastrados</div></div>
-      <div><div class="hero-stat-num">340+</div><div class="hero-stat-label">Eventos realizados</div></div>
-      <div><div class="hero-stat-num">18</div><div class="hero-stat-label">Gêneros musicais</div></div>
+      <div>
+        <div class="hero-stat-num">{{ stats.total_djs or 0 }}</div>
+        <div class="hero-stat-label">DJs aprovados</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">{{ stats.total_events or 0 }}</div>
+        <div class="hero-stat-label">Eventos realizados</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">{{ stats.total_genres or 0 }}</div>
+        <div class="hero-stat-label">Gêneros musicais</div>
+      </div>
     </div>
   </div>
 </section>

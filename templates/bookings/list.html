@@ -23,7 +23,7 @@
           <tr>
             <th>#</th>
             <th>Evento</th>
-            <th>{% if current_user.role == 'contractor' %}DJ{% else %}Contratante{% endif %}</th>
+            <th>{% if current_user.role == 'contractor' %}DJ{% else %}Usuário{% endif %}</th>
             <th>Data</th>
             <th>Plataforma</th>
             <th>Valor</th>
@@ -38,7 +38,7 @@
             <td><strong>{{ b.event_name }}</strong></td>
             <td style="color:var(--muted);">
               {% if current_user.role == 'contractor' %}DJ #{{ b.dj_profile_id }}
-              {% else %}Contratante #{{ b.contractor_id }}{% endif %}
+              {% else %}Usuário #{{ b.contractor_id }}{% endif %}
             </td>
             <td>{{ b.event_date | date_br }}</td>
             <td>{{ b.platform or '—' }}</td>

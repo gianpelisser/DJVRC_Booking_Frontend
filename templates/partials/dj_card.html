@@ -1,9 +1,40 @@
 <a href="{{ url_for('djs.profile', dj_id=dj.id) }}" class="dj-card" style="display:block; text-decoration:none;">
-  <div class="dj-banner" data-banner="{{ dj.artist_name }}">
-    <div class="dj-avatar-wrap">
-      <div class="dj-avatar" data-initials="{{ dj.artist_name }}"></div>
+
+  <!-- Wrapper do banner + avatar, com overflow:visible para o avatar sobrar -->
+  <div style="position:relative; margin-bottom:28px;">
+
+    <!-- Banner (overflow:hidden só no banner, não no wrapper) -->
+    <div style="height:90px; overflow:hidden; border-radius:var(--radius) var(--radius) 0 0;">
+      {% if dj.banner_url %}
+        <img src="{{ dj.banner_url }}"
+             style="width:100%; height:100%; object-fit:cover;"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+        <div style="display:none; width:100%; height:100%;" data-banner="{{ dj.artist_name }}"></div>
+      {% else %}
+        <div style="width:100%; height:100%;" data-banner="{{ dj.artist_name }}"></div>
+      {% endif %}
+    </div>
+
+    <!-- Avatar posicionado abaixo do banner, fora do overflow:hidden -->
+    <div style="position:absolute; bottom:-28px; left:1.25rem;">
+      <div style="width:56px; height:56px; border-radius:50%;
+                  border:3px solid var(--surface); overflow:hidden;
+                  background:linear-gradient(135deg,#00b4d8,#0077b6);">
+        {% if dj.avatar_url %}
+          <img src="{{ dj.avatar_url }}"
+               style="width:100%; height:100%; object-fit:cover;"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div data-initials="{{ dj.artist_name }}"
+               style="display:none; width:100%; height:100%;"></div>
+        {% else %}
+          <div data-initials="{{ dj.artist_name }}"
+               style="width:100%; height:100%;"></div>
+        {% endif %}
+      </div>
     </div>
   </div>
+
+  <!-- Body -->
   <div class="dj-body">
     <div class="dj-name">{{ dj.artist_name }}</div>
     <div class="dj-handle">
@@ -15,7 +46,9 @@
         <span class="tag tag-cyan">{{ genre.name }}</span>
       {% endfor %}
       {% if dj.languages %}
-        <span class="tag tag-muted">{{ dj.languages | join(', ') if dj.languages is iterable and dj.languages is not string else dj.languages }}</span>
+        <span class="tag tag-muted">
+          {{ dj.languages | join(' · ') if dj.languages is iterable and dj.languages is not string else dj.languages }}
+        </span>
       {% endif %}
     </div>
     <div class="dj-footer">
@@ -31,7 +64,7 @@
         {% endif %}
       </div>
       {% if dj.presentation_formats %}
-        <div style="font-size:.75rem; color:var(--muted);">{{ dj.presentation_formats[0].name if dj.presentation_formats else '' }}</div>
+        <div style="font-size:.75rem; color:var(--muted);">{{ dj.presentation_formats[0].name }}</div>
       {% endif %}
     </div>
   </div>

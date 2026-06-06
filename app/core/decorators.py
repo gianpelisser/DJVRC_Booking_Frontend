@@ -12,28 +12,39 @@ def login_required(fn):
     return wrapper
 
 
-def role_required(*roles):
-    def decorator(fn):
-        @wraps(fn)
-        def wrapper(*args, **kwargs):
-            if not session.get("access_token"):
-                flash("Faça login para continuar.", "warning")
-                return redirect(url_for("auth.login"))
-            user_role = session.get("user", {}).get("role")
-            if user_role not in roles:
-                abort(403)
-            return fn(*args, **kwargs)
-        return wrapper
-    return decorator
-
-
 def admin_required(fn):
-    return role_required("admin")(fn)
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if not session.get("access_token"):
+            flash("Faça login para continuar.", "warning")
+            return redirect(url_for("auth.login"))
+        user = session.get("user", {})
+        if user.get("role") != "admin":
+            abort(403)
+        return fn(*args, **kwargs)
+    return wrapper
 
 
 def dj_required(fn):
-    return role_required("dj", "admin")(fn)
+    """Requer is_dj=True na sessao (ou role admin)."""
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if not session.get("access_token"):
+            flash("Faça login para continuar.", "warning")
+            return redirect(url_for("auth.login"))
+        user = session.get("user", {})
+        if not user.get("is_dj") and user.get("role") != "admin":
+            flash("Ative o modo DJ para acessar está página.", "warning")
+            return redirect(url_for("account.dashboard"))
+        return fn(*args, **kwargs)
+    return wrapper
 
 
 def contractor_required(fn):
-    return role_required("contractor", "admin")(fn)
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if not session.get("access_token"):
+            flash("Faça login para continuar.", "warning")
+            return redirect(url_for("auth.login"))
+        return fn(*args, **kwargs)
+    return wrapper

@@ -14,16 +14,13 @@ def login():
 
 @auth_bp.post("/login")
 def login_post():
-    email = request.form.get("email", "").strip()
+    email    = request.form.get("email", "").strip()
     password = request.form.get("password", "")
 
     data, status = api_post("/auth/login", {"email": email, "password": password})
 
     if status == 200 and data and data.get("success"):
-        session.permanent = True
-        session["access_token"] = data["data"]["access_token"]
-        session["refresh_token"] = data["data"]["refresh_token"]
-        session["user"] = data["data"]["user"]
+        _save_session(data["data"])
         flash("Bem-vindo de volta!", "success")
         return redirect(url_for("index"))
 
@@ -36,30 +33,68 @@ def login_post():
 def register():
     if session.get("access_token"):
         return redirect(url_for("index"))
-    return render_template("auth/register.html")
+    # Dados pre-preenchidos vindos do Discord (query params)
+    prefill = {
+        "discord_id":       request.args.get("discord_id", ""),
+        "discord_username": request.args.get("discord_username", ""),
+        "discord_avatar":   request.args.get("discord_avatar", ""),
+        "email":            request.args.get("email", ""),
+        "username":         request.args.get("username", ""),
+    }
+    via_discord = bool(prefill["discord_id"])
+    return render_template("auth/register.html", prefill=prefill, via_discord=via_discord)
 
 
 @auth_bp.post("/register")
 def register_post():
-    username = request.form.get("username", "").strip()
-    email = request.form.get("email", "").strip()
-    password = request.form.get("password", "")
-    role = request.form.get("role", "contractor")
+    form     = request.form
+    username = form.get("username", "").strip()
+    email    = form.get("email", "").strip()
+    password = form.get("password", "")
+    is_dj    = form.get("is_dj") == "on"
 
-    data, status = api_post("/auth/register", {
-        "username": username,
-        "email": email,
-        "password": password,
-        "role": role,
-    })
+    # Dados do Discord (hidden fields, presentes se veio pelo OAuth)
+    discord_id       = form.get("discord_id", "").strip()
+    discord_username = form.get("discord_username", "").strip()
+    discord_avatar   = form.get("discord_avatar", "").strip()
+
+    payload = {
+        "username":         username,
+        "email":            email,
+        "is_dj":            is_dj,
+        "discord_id":       discord_id or None,
+        "discord_username": discord_username or None,
+        "discord_avatar":   discord_avatar or None,
+    }
+    if not discord_id:
+        payload["password"] = password
+
+    data, status = api_post("/auth/register", payload)
 
     if status == 201 and data and data.get("success"):
+        # Se veio pelo Discord, a API ja retorna tokens — loga direto
+        if discord_id and data["data"].get("access_token"):
+            _save_session(data["data"])
+            flash("Conta criada! Bem-vindo ao DJ VRC Booking!", "success")
+            return redirect(url_for("index"))
+
         flash("Cadastro realizado! Verifique seu e-mail para ativar a conta.", "success")
         return redirect(url_for("auth.login"))
 
     msg = data.get("message", "Erro ao cadastrar.") if data else "Erro de conexão com a API."
     flash(msg, "danger")
-    return render_template("auth/register.html", username=username, email=email, role=role)
+    prefill = {
+        "discord_id":       discord_id,
+        "discord_username": discord_username,
+        "discord_avatar":   discord_avatar,
+        "email":            email,
+        "username":         username,
+    }
+    return render_template("auth/register.html",
+        prefill=prefill,
+        via_discord=bool(discord_id),
+        is_dj=is_dj,
+    )
 
 
 @auth_bp.post("/logout")
@@ -110,43 +145,64 @@ def reset_password_post(token):
     return render_template("auth/reset_password.html", token=token)
 
 
-# ─── Discord OAuth ─────────────────────────────────────────────────────────────
+# --- Discord OAuth ---
 
 @auth_bp.get("/discord")
 def discord_login():
     cfg = current_app.config
     params = {
-        "client_id": cfg["DISCORD_CLIENT_ID"],
-        "redirect_uri": cfg["DISCORD_REDIRECT_URI"],
+        "client_id":     cfg["DISCORD_CLIENT_ID"],
+        "redirect_uri":  cfg["DISCORD_REDIRECT_URI"],
         "response_type": "code",
-        "scope": "identify email",
+        "scope":         "identify email",
     }
-    url = f"https://discord.com/api/oauth2/authorize?{urlencode(params)}"
-    return redirect(url)
+    return redirect(f"https://discord.com/api/oauth2/authorize?{urlencode(params)}")
 
 
 @auth_bp.get("/discord/callback")
 def discord_callback():
     code = request.args.get("code")
     if not code:
-        flash("Autenticação Discord cancelada.", "warning")
+        flash("Autenticacao Discord cancelada.", "warning")
         return redirect(url_for("auth.login"))
 
-    # Passa o code original para a API via GET (como o Discord faria)
-    # A API troca o code por token internamente usando suas próprias credenciais.
-    # IMPORTANTE: o DISCORD_REDIRECT_URI no .env da API deve apontar para
-    # http://localhost:3000/auth/discord/callback (mesmo redirect do frontend).
-    data = api_get(f"/auth/discord/callback", params={"code": code})
-    status = 200 if data and data.get("success") else 400
+    # Repassa o code para a API processar
+    data = api_get("/auth/discord/callback", params={"code": code})
 
-    if status == 200 and data and data.get("success"):
-        session.permanent = True
-        session["access_token"] = data["data"]["access_token"]
-        session["refresh_token"] = data["data"]["refresh_token"]
-        session["user"] = data["data"]["user"]
+    if not data or not data.get("success"):
+        msg = data.get("message", "Erro no login com Discord.") if data else "Erro de conexão."
+        flash(msg, "danger")
+        return redirect(url_for("auth.login"))
+
+    action = data.get("data", {}).get("action")
+
+    # Usuario ja existia: loga direto
+    if action == "login":
+        _save_session(data["data"])
         flash("Login com Discord realizado!", "success")
         return redirect(url_for("index"))
 
-    msg = data.get("message", "Erro no login com Discord.") if data else "Erro de conexão."
-    flash(msg, "danger")
+    # Usuario novo: redireciona para cadastro com dados pre-preenchidos
+    if action == "register":
+        d = data["data"]
+        params = urlencode({
+            "discord_id":       d.get("discord_id", ""),
+            "discord_username": d.get("discord_username", ""),
+            "discord_avatar":   d.get("discord_avatar", ""),
+            "email":            d.get("email", ""),
+            "username":         d.get("suggested_username", ""),
+        })
+        flash("Quase la! Complete seu cadastro para continuar.", "info")
+        return redirect(url_for("auth.register") + "?" + params)
+
+    flash("Resposta inesperada da API.", "danger")
     return redirect(url_for("auth.login"))
+
+
+# --- Helpers ---
+
+def _save_session(data: dict) -> None:
+    session.permanent = True
+    session["access_token"]  = data.get("access_token")
+    session["refresh_token"] = data.get("refresh_token")
+    session["user"]          = data.get("user")
