@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Admin — DJs — DJ VRC Booking{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div><h1>DJS</h1><p>Gerencie e aprove perfis de DJ</p></div>
+      <a href="{{ url_for('admin.dashboard') }}" class="btn btn-ghost btn-sm">← Dashboard</a>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:.5rem; margin-bottom:1.5rem;">
+    <a href="?approved=" class="page-btn {% if approved_filter == '' %}active{% endif %}">Todos</a>
+    <a href="?approved=false" class="page-btn {% if approved_filter == 'false' %}active{% endif %}">Pendentes</a>
+    <a href="?approved=true" class="page-btn {% if approved_filter == 'true' %}active{% endif %}">Aprovados</a>
+  </div>
+
+  {% if djs %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Nome artístico</th><th>Usuário</th><th>País</th><th>Gêneros</th><th>Status</th><th>Ações</th></tr>
+        </thead>
+        <tbody>
+          {% for dj in djs %}
+          <tr>
+            <td style="color:var(--muted);">#{{ dj.id }}</td>
+            <td><strong>{{ dj.artist_name }}</strong></td>
+            <td style="color:var(--muted);">#{{ dj.user_id }}</td>
+            <td>{{ dj.country or '—' }}</td>
+            <td>
+              {% for g in dj.genres[:2] %}<span class="tag tag-cyan" style="font-size:.65rem;">{{ g.name }}</span> {% endfor %}
+            </td>
+            <td>
+              {% if dj.is_approved %}<span class="badge badge-confirmed">aprovado</span>
+              {% else %}<span class="badge badge-pending">pendente</span>{% endif %}
+            </td>
+            <td style="display:flex; gap:.5rem;">
+              {% if not dj.is_approved %}
+                <form action="{{ url_for('admin.approve_dj', dj_id=dj.id) }}" method="post">
+                  <button type="submit" class="btn btn-success btn-sm">Aprovar</button>
+                </form>
+              {% endif %}
+              <form action="{{ url_for('admin.reject_dj', dj_id=dj.id) }}" method="post">
+                <button type="submit" class="btn btn-danger btn-sm" data-confirm="Rejeitar este DJ?">Rejeitar</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty">
+      <div class="empty-icon">🎧</div>
+      <h3>Nenhum DJ encontrado</h3>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

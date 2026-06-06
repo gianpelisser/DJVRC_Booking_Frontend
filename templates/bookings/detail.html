@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Booking #{{ booking.id }} — DJ VRC Booking{% endblock %}
+{% block content %}
+<div class="container" style="max-width:900px; padding-top:2rem; padding-bottom:4rem;">
+  <div style="display:flex; align-items:center; gap:1rem; margin-bottom:2rem;">
+    <a href="{{ url_for('bookings.list_bookings') }}" class="btn btn-ghost btn-sm">← Voltar</a>
+    <h1 style="font-size:2rem;">BOOKING #{{ booking.id }}</h1>
+    <span class="badge badge-{{ booking.status }}" style="font-size:.875rem; padding:.3rem .9rem;">{{ booking.status }}</span>
+  </div>
+
+  <div class="detail-grid">
+    <div>
+      <div class="card mb-2">
+        <div class="card-title mb-2">{{ booking.event_name }}</div>
+        <div class="info-row">
+          <div class="info-item"><div class="detail-label">Data</div><div class="detail-value">{{ booking.event_date | date_br }}</div></div>
+          <div class="info-item"><div class="detail-label">Horário</div><div class="detail-value">{{ booking.event_time }}</div></div>
+          <div class="info-item"><div class="detail-label">Duração</div><div class="detail-value">{{ booking.duration_minutes }} min</div></div>
+          {% if booking.platform %}<div class="info-item"><div class="detail-label">Plataforma</div><div class="detail-value">{{ booking.platform }}</div></div>{% endif %}
+        </div>
+        {% if booking.description %}
+          <div class="detail-label">Descrição</div>
+          <p style="color:var(--text); margin-top:.35rem;">{{ booking.description }}</p>
+        {% endif %}
+        {% if booking.offered_value %}
+          <div class="detail-label mt-2">Valor oferecido</div>
+          <div style="font-size:1.5rem; font-weight:500; color:var(--accent);">{{ booking.offered_value | currency }} {{ booking.currency }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Ações -->
+    <div>
+      <div class="card">
+        <div class="card-title mb-2">Ações</div>
+
+        {% if booking.status == 'pending' %}
+          {% if current_user.role == 'dj' %}
+            <form action="{{ url_for('bookings.accept', booking_id=booking.id) }}" method="post">
+              <button type="submit" class="btn btn-success btn-block mb-1">✓ Aceitar proposta</button>
+            </form>
+            <form action="{{ url_for('bookings.decline', booking_id=booking.id) }}" method="post">
+              <div class="form-group" style="margin-bottom:.75rem;">
+                <textarea class="form-textarea" name="notes" rows="2" placeholder="Motivo (opcional)..."></textarea>
+              </div>
+              <button type="submit" class="btn btn-danger btn-block">✕ Recusar proposta</button>
+            </form>
+          {% endif %}
+          {% if current_user.role == 'contractor' %}
+            <p style="color:var(--muted); font-size:.875rem; margin-bottom:1rem;">Aguardando resposta do DJ.</p>
+          {% endif %}
+        {% endif %}
+
+        {% if booking.status in ['pending', 'accepted'] %}
+          <hr class="divider-line" />
+          <form action="{{ url_for('bookings.cancel', booking_id=booking.id) }}" method="post">
+            <button type="submit" class="btn btn-ghost btn-block btn-sm" data-confirm="Tem certeza que deseja cancelar este booking?">Cancelar booking</button>
+          </form>
+        {% endif %}
+
+        {% if booking.event_id %}
+          <hr class="divider-line" />
+          <a href="{{ url_for('events.detail', event_id=booking.event_id) }}" class="btn btn-outline btn-block btn-sm">Ver evento criado →</a>
+        {% endif %}
+
+        <div class="mt-2" style="font-size:.8rem; color:var(--muted);">
+          Criado em {{ booking.created_at[:10] | date_br if booking.created_at else '—' }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

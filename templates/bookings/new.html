@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Nova proposta para {{ dj.artist_name }} — DJ VRC Booking{% endblock %}
+{% block content %}
+<div class="container" style="max-width:680px; padding-top:2rem; padding-bottom:4rem;">
+  <div class="page-header">
+    <h1>ENVIAR PROPOSTA</h1>
+    <p>Para <strong style="color:var(--text);">{{ dj.artist_name }}</strong></p>
+  </div>
+
+  <form method="post">
+    <div class="card mb-3">
+      <div class="card-title mb-2">Dados do evento</div>
+      <div class="form-group">
+        <label class="form-label">Nome do evento *</label>
+        <input class="form-input" type="text" name="event_name" required placeholder="Ex: Festa VR — Ano Novo" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Data *</label>
+          <input class="form-input" type="date" name="event_date" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Horário *</label>
+          <input class="form-input" type="time" name="event_time" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Duração (minutos) *</label>
+          <input class="form-input" type="number" name="duration_minutes" value="60" min="15" max="480" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Plataforma</label>
+          <select class="form-select" name="platform">
+            <option value="">Selecione...</option>
+            <option>VRChat</option><option>VRCDN</option><option>Twitch</option>
+            <option>YouTube</option><option>Kick</option><option>Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descrição do evento</label>
+        <textarea class="form-textarea" name="description" rows="3" placeholder="Detalhes sobre o evento, tema, público esperado..."></textarea>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-title mb-2">Valor oferecido</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Valor</label>
+          <input class="form-input" type="number" name="offered_value" step="0.01" min="0"
+            placeholder="{% if dj.hourly_rate %}Sugerido: {{ dj.hourly_rate }}{% else %}Opcional{% endif %}" />
+          <div class="form-hint">
+            {% if dj.negotiable %}Este DJ aceita negociação.{% endif %}
+            {% if dj.minimum_rate %}Mínimo: {{ dj.minimum_rate | currency }} {{ dj.currency }}.{% endif %}
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Moeda</label>
+          <select class="form-select" name="currency">
+            <option value="USD">USD</option>
+            <option value="BRL">BRL</option>
+            <option value="EUR">EUR</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:1rem; align-items:center;">
+      <button type="submit" class="btn btn-primary btn-lg">Enviar proposta</button>
+      <a href="{{ url_for('djs.profile', dj_id=dj.id) }}" class="btn btn-ghost">Cancelar</a>
+    </div>
+    <p class="form-hint mt-1">O DJ receberá uma notificação no Discord e poderá aceitar ou recusar.</p>
+  </form>
+</div>
+{% endblock %}

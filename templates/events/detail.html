@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}{{ event.name }} — DJ VRC Booking{% endblock %}
+{% block content %}
+<div class="container" style="max-width:900px; padding-top:2rem; padding-bottom:4rem;">
+  <div style="display:flex; align-items:center; gap:1rem; margin-bottom:2rem;">
+    <a href="{{ url_for('events.list_events') }}" class="btn btn-ghost btn-sm">← Voltar</a>
+    <h1 style="font-size:2rem;">{{ event.name | upper }}</h1>
+    <span class="badge badge-{{ event.status }}">{{ event.status }}</span>
+  </div>
+
+  <div class="detail-grid">
+    <div>
+      <div class="card mb-2">
+        <div class="info-row">
+          <div class="info-item"><div class="detail-label">Data</div><div class="detail-value">{{ event.event_date | date_br }}</div></div>
+          <div class="info-item"><div class="detail-label">Horário</div><div class="detail-value">{{ event.event_time }}</div></div>
+          {% if event.platform %}<div class="info-item"><div class="detail-label">Plataforma</div><div class="detail-value">{{ event.platform }}</div></div>{% endif %}
+        </div>
+        {% if event.description %}
+          <div class="detail-label mt-2">Descrição</div>
+          <p style="color:var(--text); margin-top:.35rem;">{{ event.description }}</p>
+        {% endif %}
+        {% if event.stream_url %}
+          <div class="detail-label mt-2">Link da transmissão</div>
+          <a href="{{ event.stream_url }}" target="_blank" style="color:var(--accent);">{{ event.stream_url }}</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Ações do organizador -->
+    <div>
+      <div class="card">
+        <div class="card-title mb-2">Atualizar evento</div>
+        <form action="{{ url_for('events.update_status', event_id=event.id) }}" method="post">
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-select" name="status">
+              {% for s in ['pending','confirmed','ongoing','finished','cancelled'] %}
+                <option value="{{ s }}" {% if event.status == s %}selected{% endif %}>{{ s }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Link da transmissão</label>
+            <input class="form-input" type="url" name="stream_url" value="{{ event.stream_url or '' }}" placeholder="https://twitch.tv/..." />
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Salvar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

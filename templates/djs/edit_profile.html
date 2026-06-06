@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Meu Perfil DJ — DJ VRC Booking{% endblock %}
+{% block content %}
+<div class="container" style="max-width:800px; padding-top:2rem; padding-bottom:4rem;">
+  <div class="page-header">
+    <h1>MEU PERFIL DJ</h1>
+    <p>{% if profile %}Edite suas informações públicas{% else %}Crie seu perfil para aparecer nas buscas{% endif %}</p>
+  </div>
+
+  {% if profile and not profile.is_approved %}
+    <div class="flash flash-warning" style="margin-bottom:1.5rem;">
+      ⏳ Seu perfil está aguardando aprovação de um administrador.
+    </div>
+  {% endif %}
+
+  <form method="post">
+    <div class="card mb-3">
+      <div class="card-title mb-2">Informações básicas</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nome artístico *</label>
+          <input class="form-input" type="text" name="artist_name" value="{{ profile.artist_name or '' }}" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nome real (privado)</label>
+          <input class="form-input" type="text" name="real_name" value="{{ profile.real_name or '' }}" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bio</label>
+        <textarea class="form-textarea" name="bio" rows="4" placeholder="Conte sobre você, seu estilo e experiência...">{{ profile.bio or '' }}</textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">País</label>
+          <input class="form-input" type="text" name="country" value="{{ profile.country or '' }}" placeholder="BR, US, PT..." />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fuso horário</label>
+          <input class="form-input" type="text" name="timezone" value="{{ profile.timezone or '' }}" placeholder="America/Sao_Paulo" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Idiomas (separados por vírgula)</label>
+        <input class="form-input" type="text" name="languages" value="{{ profile.languages | join(', ') if profile.languages is iterable and profile.languages is not string else (profile.languages or '') }}" placeholder="pt-BR, en-US" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Anos de experiência</label>
+        <input class="form-input" type="number" name="experience_years" value="{{ profile.experience_years or 0 }}" min="0" max="50" />
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-title mb-2">Gêneros musicais</div>
+      <div style="display:flex; flex-wrap:wrap; gap:.5rem;">
+        {% for g in genres %}
+          <label style="display:flex; align-items:center; gap:.35rem; cursor:pointer; padding:.3rem .7rem; border:1px solid var(--border); border-radius:100px; font-size:.8rem; color:var(--muted); transition:all .2s;"
+            onmouseenter="this.style.borderColor='var(--accent)'"
+            onmouseleave="if(!this.querySelector('input').checked)this.style.borderColor='var(--border)'">
+            <input type="checkbox" name="genre_ids" value="{{ g.id }}"
+              {% if profile.genres and g.id in (profile.genres | map(attribute='id') | list) %}checked{% endif %}
+              style="accent-color:var(--accent);" onchange="this.parentElement.style.borderColor=this.checked?'var(--accent)':'var(--border)'; this.parentElement.style.color=this.checked?'var(--accent)':'var(--muted)'" />
+            {{ g.name }}
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-title mb-2">Formatos de apresentação</div>
+      <div style="display:flex; flex-wrap:wrap; gap:.5rem;">
+        {% for f in formats %}
+          <label style="display:flex; align-items:center; gap:.35rem; cursor:pointer; padding:.3rem .7rem; border:1px solid var(--border); border-radius:100px; font-size:.8rem; color:var(--muted); transition:all .2s;">
+            <input type="checkbox" name="presentation_format_ids" value="{{ f.id }}"
+              {% if profile.presentation_formats and f.id in (profile.presentation_formats | map(attribute='id') | list) %}checked{% endif %}
+              style="accent-color:var(--accent);" />
+            {{ f.name }}
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-title mb-2">Preços</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Valor por hora</label>
+          <input class="form-input" type="number" name="hourly_rate" value="{{ profile.hourly_rate or '' }}" step="0.01" min="0" placeholder="15.00" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Valor por evento</label>
+          <input class="form-input" type="number" name="event_rate" value="{{ profile.event_rate or '' }}" step="0.01" min="0" placeholder="50.00" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Valor mínimo</label>
+          <input class="form-input" type="number" name="minimum_rate" value="{{ profile.minimum_rate or '' }}" step="0.01" min="0" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Moeda</label>
+          <select class="form-select" name="currency">
+            <option value="USD" {% if (profile.currency or 'USD') == 'USD' %}selected{% endif %}>USD</option>
+            <option value="BRL" {% if profile.currency == 'BRL' %}selected{% endif %}>BRL</option>
+            <option value="EUR" {% if profile.currency == 'EUR' %}selected{% endif %}>EUR</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+        <label class="form-check">
+          <input type="checkbox" name="negotiable" {% if profile.negotiable %}checked{% endif %} /> Valor negociável
+        </label>
+        <label class="form-check">
+          <input type="checkbox" name="request_quote" {% if profile.request_quote %}checked{% endif %} /> Solicitar orçamento
+        </label>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-title mb-2">Redes sociais</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Discord</label>
+          <input class="form-input" type="text" name="discord_tag" value="{{ profile.social.discord if profile.social else '' }}" placeholder="usuario#0000" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">VRChat username</label>
+          <input class="form-input" type="text" name="vrchat_username" value="{{ profile.social.vrchat if profile.social else '' }}" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Twitch URL</label>
+          <input class="form-input" type="url" name="twitch_url" value="{{ profile.social.twitch if profile.social else '' }}" placeholder="https://twitch.tv/..." />
+        </div>
+        <div class="form-group">
+          <label class="form-label">YouTube URL</label>
+          <input class="form-input" type="url" name="youtube_url" value="{{ profile.social.youtube if profile.social else '' }}" placeholder="https://youtube.com/..." />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Website</label>
+        <input class="form-input" type="url" name="website_url" value="{{ profile.social.website if profile.social else '' }}" placeholder="https://..." />
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-title mb-2">Experiência profissional</div>
+      <div class="form-group">
+        <label class="form-label">Equipamentos utilizados</label>
+        <textarea class="form-textarea" name="equipment" rows="3" placeholder="Pioneer DJ, controladores, software...">{{ profile.equipment or '' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Experiência em eventos</label>
+        <textarea class="form-textarea" name="event_experience" rows="3" placeholder="Liste eventos anteriores, tipos de eventos, plataformas...">{{ profile.event_experience or '' }}</textarea>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:1rem;">
+      <button type="submit" class="btn btn-primary btn-lg">Salvar perfil</button>
+      <a href="{{ url_for('djs.availability') }}" class="btn btn-ghost">Gerenciar disponibilidade →</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Admin — Usuários — DJ VRC Booking{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div><h1>USUÁRIOS</h1><p>{{ pagination.total or 0 }} usuários cadastrados</p></div>
+      <a href="{{ url_for('admin.dashboard') }}" class="btn btn-ghost btn-sm">← Dashboard</a>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:.5rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+    {% for r in ['','dj','contractor','admin'] %}
+      <a href="?role={{ r }}" class="page-btn {% if filters.get('role','') == r %}active{% endif %}">
+        {{ {'':'Todos','dj':'DJs','contractor':'Contratantes','admin':'Admins'}[r] }}
+      </a>
+    {% endfor %}
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Username</th><th>E-mail</th><th>Role</th><th>Status</th><th>Discord</th><th>Ações</th></tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td style="color:var(--muted);">#{{ u.id }}</td>
+          <td><strong>{{ u.username }}</strong></td>
+          <td style="color:var(--muted); font-size:.8rem;">{{ u.email }}</td>
+          <td><span class="badge badge-{{ u.role }}">{{ u.role }}</span></td>
+          <td>
+            {% if u.is_suspended %}<span class="badge badge-declined">suspenso</span>
+            {% elif u.is_active %}<span class="badge badge-confirmed">ativo</span>
+            {% else %}<span class="badge badge-pending">inativo</span>{% endif %}
+          </td>
+          <td style="color:var(--muted); font-size:.8rem;">{{ u.discord_username or '—' }}</td>
+          <td style="display:flex; gap:.35rem;">
+            {% if u.is_suspended %}
+              <form action="{{ url_for('admin.activate_user', user_id=u.id) }}" method="post">
+                <button type="submit" class="btn btn-success btn-sm">Ativar</button>
+              </form>
+            {% else %}
+              <form action="{{ url_for('admin.suspend_user', user_id=u.id) }}" method="post">
+                <button type="submit" class="btn btn-danger btn-sm" data-confirm="Suspender {{ u.username }}?">Suspender</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

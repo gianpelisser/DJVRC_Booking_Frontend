@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}DJ VRC Booking — Contrate DJs para seu evento virtual{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-orb hero-orb-1"></div>
+  <div class="hero-orb hero-orb-2"></div>
+  <div class="hero-content container">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      Plataforma de booking virtual
+    </div>
+    <h1>CONTRATE <em>DJs</em><br>PARA O MUNDO<br>VIRTUAL</h1>
+    <p class="hero-sub">Encontre os melhores DJs do VRChat para o seu evento. Booking rápido, seguro e com notificações em tempo real via Discord.</p>
+    <div class="hero-actions">
+      <a href="{{ url_for('djs.list_djs') }}" class="btn btn-primary btn-lg">Explorar DJs</a>
+      {% if not is_logged_in %}
+        <a href="{{ url_for('auth.register') }}" class="btn btn-outline btn-lg">Quero me cadastrar →</a>
+      {% endif %}
+    </div>
+    <div class="hero-stats">
+      <div><div class="hero-stat-num">120+</div><div class="hero-stat-label">DJs cadastrados</div></div>
+      <div><div class="hero-stat-num">340+</div><div class="hero-stat-label">Eventos realizados</div></div>
+      <div><div class="hero-stat-num">18</div><div class="hero-stat-label">Gêneros musicais</div></div>
+    </div>
+  </div>
+</section>
+
+{% if djs %}
+<section class="section" style="border-top: 1px solid var(--border);">
+  <div class="container">
+    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2rem;">
+      <h2>DJS EM DESTAQUE</h2>
+      <a href="{{ url_for('djs.list_djs') }}" class="btn btn-ghost btn-sm">Ver todos →</a>
+    </div>
+    <div class="dj-grid">
+      {% for dj in djs %}
+        {% include "partials/dj_card.html" %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section" style="background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="container">
+    <h2 style="margin-bottom:.5rem;">COMO FUNCIONA</h2>
+    <p style="margin-bottom:2.5rem;">Do match ao set ao vivo em poucos cliques.</p>
+    <div class="grid-2" style="gap:1px; background:var(--border); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;">
+      {% for step in [
+        ('01','Encontre um DJ','Filtre por gênero, idioma, preço e plataforma.'),
+        ('02','Envie uma proposta','Informe data, horário e detalhes. O DJ recebe no Discord.'),
+        ('03','DJ aceita','Evento criado automaticamente. Ambos são notificados.'),
+        ('04','Curta o evento','Acompanhe o status e receba lembretes automáticos.')
+      ] %}
+      <div style="background:var(--bg2); padding:2rem; transition:background .2s;" onmouseenter="this.style.background='var(--bg3)'" onmouseleave="this.style.background='var(--bg2)'">
+        <div style="font-family:var(--font-d); font-size:3.5rem; color:rgba(0,229,255,.1); line-height:1; margin-bottom:.75rem;">{{ step[0] }}</div>
+        <div style="font-size:1rem; font-weight:500; color:var(--text); margin-bottom:.35rem;">{{ step[1] }}</div>
+        <div style="font-size:.875rem; color:var(--muted);">{{ step[2] }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

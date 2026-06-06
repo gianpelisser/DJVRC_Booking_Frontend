@@ -1,0 +1,38 @@
+<a href="{{ url_for('djs.profile', dj_id=dj.id) }}" class="dj-card" style="display:block; text-decoration:none;">
+  <div class="dj-banner" data-banner="{{ dj.artist_name }}">
+    <div class="dj-avatar-wrap">
+      <div class="dj-avatar" data-initials="{{ dj.artist_name }}"></div>
+    </div>
+  </div>
+  <div class="dj-body">
+    <div class="dj-name">{{ dj.artist_name }}</div>
+    <div class="dj-handle">
+      {% if dj.social and dj.social.vrchat %}@{{ dj.social.vrchat }}{% endif %}
+      {% if dj.country %} · {{ dj.country }}{% endif %}
+    </div>
+    <div class="dj-tags">
+      {% for genre in dj.genres[:3] %}
+        <span class="tag tag-cyan">{{ genre.name }}</span>
+      {% endfor %}
+      {% if dj.languages %}
+        <span class="tag tag-muted">{{ dj.languages | join(', ') if dj.languages is iterable and dj.languages is not string else dj.languages }}</span>
+      {% endif %}
+    </div>
+    <div class="dj-footer">
+      <div class="dj-price">
+        {% if dj.request_quote %}
+          orçamento <span>sob consulta</span>
+        {% elif dj.hourly_rate %}
+          a partir de <span>{{ dj.hourly_rate | currency }}</span>/h
+        {% elif dj.event_rate %}
+          evento <span>{{ dj.event_rate | currency }}</span>
+        {% else %}
+          <span>{{ 'negociável' if dj.negotiable else '—' }}</span>
+        {% endif %}
+      </div>
+      {% if dj.presentation_formats %}
+        <div style="font-size:.75rem; color:var(--muted);">{{ dj.presentation_formats[0].name if dj.presentation_formats else '' }}</div>
+      {% endif %}
+    </div>
+  </div>
+</a>

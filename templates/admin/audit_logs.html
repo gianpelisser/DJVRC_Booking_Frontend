@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Audit Logs — DJ VRC Booking{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div><h1>AUDIT LOGS</h1><p>Registro de ações do sistema</p></div>
+      <a href="{{ url_for('admin.dashboard') }}" class="btn btn-ghost btn-sm">← Dashboard</a>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>ID</th><th>Usuário</th><th>Ação</th><th>Recurso</th><th>IP</th><th>Data</th></tr></thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td style="color:var(--muted);">#{{ log.id }}</td>
+          <td>#{{ log.user_id or '—' }}</td>
+          <td><code style="font-size:.8rem; color:var(--accent);">{{ log.action }}</code></td>
+          <td style="color:var(--muted); font-size:.8rem;">{{ log.resource_type or '' }} {{ log.resource_id or '' }}</td>
+          <td style="color:var(--muted); font-size:.8rem;">{{ log.ip_address or '—' }}</td>
+          <td style="color:var(--muted); font-size:.8rem;">{{ log.created_at[:19] if log.created_at else '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

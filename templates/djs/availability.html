@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Disponibilidade — DJ VRC Booking{% endblock %}
+{% block content %}
+<div class="container" style="max-width:680px; padding-top:2rem; padding-bottom:4rem;">
+  <div class="page-header">
+    <h1>DISPONIBILIDADE</h1>
+    <p>Defina seus horários e datas bloqueadas</p>
+  </div>
+
+  <form method="post" id="availForm">
+    <div class="card mb-3">
+      <div class="card-title mb-2">Dias e horários disponíveis</div>
+      <div id="weekSlots">
+        {% for day_num, day_name in [(5,'Sexta-feira'),(6,'Sábado'),(0,'Segunda'),(1,'Terça'),(2,'Quarta'),(3,'Quinta'),(4,'Domingo')] %}
+        <div style="display:grid; grid-template-columns:140px 1fr 1fr; gap:.75rem; align-items:center; padding:.6rem 0; border-bottom:1px solid var(--border);">
+          <label class="form-check">
+            <input type="checkbox" name="weekday[]" value="{{ day_num }}" /> {{ day_name }}
+          </label>
+          <input type="time" name="start_time[]" value="20:00" class="form-input" style="padding:.4rem .6rem;" />
+          <input type="time" name="end_time[]" value="02:00" class="form-input" style="padding:.4rem .6rem;" />
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-title mb-2">Datas bloqueadas</div>
+      <div id="blockedDates">
+        <div style="display:flex; gap:.75rem; margin-bottom:.5rem;">
+          <input type="date" name="blocked_date[]" class="form-input" />
+          <button type="button" class="btn btn-ghost btn-sm" onclick="addBlockedDate()">+ Adicionar</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:1rem;">
+      <button type="submit" class="btn btn-primary">Salvar disponibilidade</button>
+      <a href="{{ url_for('djs.my_profile') }}" class="btn btn-ghost">← Voltar ao perfil</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function addBlockedDate() {
+  const container = document.getElementById('blockedDates');
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex; gap:.75rem; margin-bottom:.5rem;';
+  div.innerHTML = '<input type="date" name="blocked_date[]" class="form-input" /><button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">✕</button>';
+  container.insertBefore(div, container.lastElementChild);
+}
+</script>
+{% endblock %}

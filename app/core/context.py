@@ -1,0 +1,53 @@
+from flask import session
+
+
+def register_context(app):
+
+    @app.context_processor
+    def inject_user():
+        """Injeta o usuário logado em todos os templates."""
+        return {
+            "current_user": session.get("user"),
+            "is_logged_in": bool(session.get("access_token")),
+        }
+
+    @app.template_filter("currency")
+    def currency_filter(value, symbol="$"):
+        if value is None:
+            return "—"
+        try:
+            return f"{symbol}{float(value):.2f}"
+        except (ValueError, TypeError):
+            return value
+
+    @app.template_filter("date_br")
+    def date_br_filter(value):
+        """Converte 2025-12-31 → 31/12/2025."""
+        if not value:
+            return "—"
+        try:
+            parts = str(value).split("-")
+            return f"{parts[2]}/{parts[1]}/{parts[0]}"
+        except Exception:
+            return value
+
+    @app.template_filter("truncate_bio")
+    def truncate_bio(value, length=120):
+        if not value:
+            return ""
+        return value[:length] + "..." if len(value) > length else value
+
+    @app.errorhandler(403)
+    def forbidden(e):
+        from flask import render_template
+        return render_template("errors/403.html"), 403
+
+    @app.errorhandler(404)
+    def not_found(e):
+        from flask import render_template
+        return render_template("errors/404.html"), 404
+
+    @app.errorhandler(500)
+    def server_error(e):
+        from flask import render_template
+        return render_template("errors/500.html"), 500

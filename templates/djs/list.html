@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Explorar DJs — DJ VRC Booking{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <h1>EXPLORAR DJS</h1>
+    <p>{{ pagination.total or 0 }} DJs encontrados</p>
+  </div>
+
+  <div class="layout-with-sidebar">
+    <!-- SIDEBAR FILTROS -->
+    <aside class="sidebar">
+      <form method="get" id="filterForm">
+        <div class="sidebar-title">Filtros</div>
+
+        <div class="filter-group">
+          <label class="form-label">Buscar</label>
+          <input class="form-input" type="text" name="search" value="{{ filters.get('search','') }}" placeholder="Nome ou bio..." />
+        </div>
+
+        <div class="filter-group">
+          <label class="form-label">Gênero musical</label>
+          <select class="form-select" name="genre">
+            <option value="">Todos</option>
+            {% for g in genres %}
+              <option value="{{ g.slug }}" {% if filters.get('genre') == g.slug %}selected{% endif %}>{{ g.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="form-label">Idioma</label>
+          <select class="form-select" name="language">
+            <option value="">Qualquer</option>
+            <option value="pt-BR" {% if filters.get('language') == 'pt-BR' %}selected{% endif %}>Português (BR)</option>
+            <option value="en-US" {% if filters.get('language') == 'en-US' %}selected{% endif %}>English (US)</option>
+            <option value="es" {% if filters.get('language') == 'es' %}selected{% endif %}>Español</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="form-label">País</label>
+          <input class="form-input" type="text" name="country" value="{{ filters.get('country','') }}" placeholder="Ex: BR, US, PT" />
+        </div>
+
+        <div class="filter-group">
+          <label class="form-label">Preço máximo (USD/h)</label>
+          <input class="form-input" type="number" name="max_price" value="{{ filters.get('max_price','') }}" placeholder="Ex: 50" min="0" />
+        </div>
+
+        <div class="filter-group">
+          <label class="form-label">Ordenar por</label>
+          <select class="form-select" name="sort">
+            <option value="recent" {% if filters.get('sort','recent') == 'recent' %}selected{% endif %}>Mais recentes</option>
+            <option value="price_asc" {% if filters.get('sort') == 'price_asc' %}selected{% endif %}>Menor preço</option>
+            <option value="price_desc" {% if filters.get('sort') == 'price_desc' %}selected{% endif %}>Maior preço</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Filtrar</button>
+        <a href="{{ url_for('djs.list_djs') }}" class="btn btn-ghost btn-block mt-1">Limpar filtros</a>
+      </form>
+    </aside>
+
+    <!-- GRID DE DJS -->
+    <div>
+      {% if djs %}
+        <div class="dj-grid">
+          {% for dj in djs %}
+            {% include "partials/dj_card.html" %}
+          {% endfor %}
+        </div>
+
+        <!-- Paginação -->
+        {% if pagination.pages and pagination.pages > 1 %}
+        <div class="pagination">
+          {% set current_page = pagination.page | int %}
+          {% for p in range(1, pagination.pages + 1) %}
+            <a href="?page={{ p }}{% for k,v in filters.items() %}&{{ k }}={{ v }}{% endfor %}"
+               class="page-btn {% if p == current_page %}active{% endif %}">{{ p }}</a>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+      {% else %}
+        <div class="empty">
+          <div class="empty-icon">🎧</div>
+          <h3>Nenhum DJ encontrado</h3>
+          <p>Tente ajustar os filtros de busca.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

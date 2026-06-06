@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Meus Eventos — DJ VRC Booking{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <h1>MEUS EVENTOS</h1>
+    <p>Eventos confirmados e em andamento</p>
+  </div>
+
+  <div style="display:flex; gap:.5rem; margin-bottom:2rem; flex-wrap:wrap;">
+    {% for s in ['','confirmed','ongoing','finished','cancelled'] %}
+      <a href="?status={{ s }}" class="page-btn {% if status_filter == s %}active{% endif %}">
+        {{ {'':'Todos','confirmed':'Confirmados','ongoing':'Em andamento','finished':'Finalizados','cancelled':'Cancelados'}[s] }}
+      </a>
+    {% endfor %}
+  </div>
+
+  {% if events %}
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.25rem;">
+      {% for e in events %}
+      <a href="{{ url_for('events.detail', event_id=e.id) }}" class="card card-hover" style="display:block; text-decoration:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.75rem;">
+          <div class="card-title">{{ e.name }}</div>
+          <span class="badge badge-{{ e.status }}">{{ e.status }}</span>
+        </div>
+        <div style="font-size:.875rem; color:var(--muted);">📅 {{ e.event_date | date_br }} às {{ e.event_time }}</div>
+        {% if e.platform %}<div style="font-size:.8rem; color:var(--muted); margin-top:.25rem;">🎮 {{ e.platform }}</div>{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty">
+      <div class="empty-icon">🎉</div>
+      <h3>Nenhum evento ainda</h3>
+      <p>Eventos são criados automaticamente quando um booking é aceito.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

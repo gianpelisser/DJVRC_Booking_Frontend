@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Meus Bookings — DJ VRC Booking{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <h1>MEUS BOOKINGS</h1>
+    <p>Gerencie suas propostas e contratações</p>
+  </div>
+
+  <!-- Filtro status -->
+  <div style="display:flex; gap:.5rem; margin-bottom:2rem; flex-wrap:wrap;">
+    {% for s in ['', 'pending', 'accepted', 'declined', 'cancelled', 'completed'] %}
+      <a href="?status={{ s }}" class="page-btn {% if status_filter == s %}active{% endif %}">
+        {{ {'':'Todos','pending':'Pendentes','accepted':'Aceitos','declined':'Recusados','cancelled':'Cancelados','completed':'Concluídos'}[s] }}
+      </a>
+    {% endfor %}
+  </div>
+
+  {% if bookings %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Evento</th>
+            <th>{% if current_user.role == 'contractor' %}DJ{% else %}Contratante{% endif %}</th>
+            <th>Data</th>
+            <th>Plataforma</th>
+            <th>Valor</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in bookings %}
+          <tr>
+            <td style="color:var(--muted);">#{{ b.id }}</td>
+            <td><strong>{{ b.event_name }}</strong></td>
+            <td style="color:var(--muted);">
+              {% if current_user.role == 'contractor' %}DJ #{{ b.dj_profile_id }}
+              {% else %}Contratante #{{ b.contractor_id }}{% endif %}
+            </td>
+            <td>{{ b.event_date | date_br }}</td>
+            <td>{{ b.platform or '—' }}</td>
+            <td>{{ b.offered_value | currency if b.offered_value else '—' }}</td>
+            <td><span class="badge badge-{{ b.status }}">{{ b.status }}</span></td>
+            <td><a href="{{ url_for('bookings.detail', booking_id=b.id) }}" class="btn btn-ghost btn-sm">Ver</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty">
+      <div class="empty-icon">📋</div>
+      <h3>Nenhum booking encontrado</h3>
+      <p>{% if current_user.role == 'contractor' %}<a href="{{ url_for('djs.list_djs') }}">Explore os DJs disponíveis</a>{% else %}Aguarde propostas de contratantes.{% endif %}</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
