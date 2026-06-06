@@ -3,18 +3,52 @@
 {% block content %}
 <div class="container" style="padding-top:2rem; padding-bottom:4rem;">
 
-  <!-- Banner + Avatar -->
-  <div style="height:200px; border-radius:var(--radius); overflow:hidden; position:relative; margin-bottom:4rem; background:var(--bg2);" data-banner="{{ dj.artist_name }}">
-    <div style="position:absolute; bottom:-40px; left:2rem; display:flex; align-items:flex-end; gap:1.25rem;">
-      <div class="dj-avatar" style="width:80px; height:80px; font-size:1.8rem; border-width:4px;" data-initials="{{ dj.artist_name }}"></div>
-      <div style="padding-bottom:.5rem;">
-        <h1 style="font-size:clamp(1.5rem,4vw,2.5rem); margin-bottom:.15rem;">{{ dj.artist_name }}</h1>
-        <div style="font-size:.875rem; color:var(--muted);">
-          {% if dj.social and dj.social.vrchat %}@{{ dj.social.vrchat }}{% endif %}
-          {% if dj.country %} · {{ dj.country }}{% endif %}
-          {% if dj.experience_years %} · {{ dj.experience_years }} anos de exp.{% endif %}
-        </div>
+  {% if pending %}
+    <div class="flash flash-warning" style="margin-bottom:1.5rem;">
+      ⏳ Seu perfil está salvo mas só você consegue visualizá-lo por enquanto.
+    </div>
+  {% endif %}
+
+  <!-- Banner -->
+  <div style="height:220px; border-radius:var(--radius); overflow:hidden; position:relative;
+              margin-bottom:4rem; background:var(--bg2);">
+    {% if dj.banner_url %}
+      <img src="{{ dj.banner_url }}"
+           style="width:100%; height:100%; object-fit:cover;"
+           onerror="this.style.display='none'; this.parentElement.setAttribute('data-banner','{{ dj.artist_name }}');" />
+    {% else %}
+      <div style="width:100%; height:100%;" data-banner="{{ dj.artist_name }}"></div>
+    {% endif %}
+
+    <!-- Avatar sobre o banner -->
+    <div style="position:absolute; bottom:-36px; left:2rem;">
+      <div style="width:80px; height:80px; border-radius:50%; border:4px solid var(--bg);
+                  overflow:hidden; background:linear-gradient(135deg,#00b4d8,#0077b6);">
+        {% if dj.avatar_url %}
+          <img src="{{ dj.avatar_url }}"
+               style="width:100%; height:100%; object-fit:cover;"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div data-initials="{{ dj.artist_name }}"
+               style="display:none; width:100%; height:100%;
+                      align-items:center; justify-content:center;
+                      font-family:var(--font-d); font-size:1.8rem; color:#fff;"></div>
+        {% else %}
+          <div data-initials="{{ dj.artist_name }}"
+               style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+                      font-family:var(--font-d); font-size:1.8rem; color:#fff;"></div>
+        {% endif %}
       </div>
+    </div>
+  </div>
+
+  <!-- Nome e handle -->
+  <div style="margin-bottom:2rem;">
+    <h1 style="font-size:clamp(1.5rem,4vw,2.5rem); margin-bottom:.25rem;">{{ dj.artist_name }}</h1>
+    <div style="font-size:.875rem; color:var(--muted); display:flex; gap:1rem; flex-wrap:wrap;">
+      {% if dj.social and dj.social.vrchat %}<span>@{{ dj.social.vrchat }}</span>{% endif %}
+      {% if dj.country %}<span>{{ dj.country }}</span>{% endif %}
+      {% if dj.experience_years %}<span>{{ dj.experience_years }} anos de exp.</span>{% endif %}
+      {% if dj.timezone %}<span>{{ dj.timezone }}</span>{% endif %}
     </div>
   </div>
 
@@ -22,49 +56,68 @@
     <!-- COLUNA PRINCIPAL -->
     <div>
       {% if dj.genres %}
-      <div style="display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:1.5rem;">
-        {% for g in dj.genres %}<span class="tag tag-cyan">{{ g.name }}</span>{% endfor %}
-      </div>
+        <div style="display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:1.5rem;">
+          {% for g in dj.genres %}<span class="tag tag-cyan">{{ g.name }}</span>{% endfor %}
+        </div>
       {% endif %}
 
       {% if dj.bio %}
-      <div class="detail-section">
-        <div class="detail-label">Sobre</div>
-        <p style="color:var(--text); line-height:1.75;">{{ dj.bio }}</p>
-      </div>
+        <div class="detail-section">
+          <div class="detail-label">Sobre</div>
+          <p style="color:var(--text); line-height:1.75;">{{ dj.bio }}</p>
+        </div>
       {% endif %}
 
       {% if dj.presentation_formats %}
-      <div class="detail-section">
-        <div class="detail-label">Formatos de apresentação</div>
-        <div style="display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.5rem;">
-          {% for f in dj.presentation_formats %}<span class="tag tag-muted">{{ f.name }}</span>{% endfor %}
+        <div class="detail-section">
+          <div class="detail-label">Formatos de apresentação</div>
+          <div style="display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.5rem;">
+            {% for f in dj.presentation_formats %}<span class="tag tag-muted">{{ f.name }}</span>{% endfor %}
+          </div>
         </div>
-      </div>
       {% endif %}
 
       {% if dj.languages %}
-      <div class="detail-section">
-        <div class="detail-label">Idiomas</div>
-        <p style="color:var(--text);">{{ dj.languages | join(', ') if dj.languages is iterable and dj.languages is not string else dj.languages }}</p>
-      </div>
+        <div class="detail-section">
+          <div class="detail-label">Idiomas</div>
+          <p style="color:var(--text);">
+            {{ dj.languages | join(' · ') if dj.languages is iterable and dj.languages is not string else dj.languages }}
+          </p>
+        </div>
       {% endif %}
 
-      <!-- Social Links -->
-      {% if dj.social %}
-      <div class="detail-section">
-        <div class="detail-label">Links</div>
-        <div style="display:flex; flex-direction:column; gap:.5rem; margin-top:.5rem;">
-          {% if dj.social.twitch %}<a href="{{ dj.social.twitch }}" target="_blank" style="color:var(--muted); font-size:.875rem;">🎮 Twitch → {{ dj.social.twitch }}</a>{% endif %}
-          {% if dj.social.youtube %}<a href="{{ dj.social.youtube }}" target="_blank" style="color:var(--muted); font-size:.875rem;">▶ YouTube → {{ dj.social.youtube }}</a>{% endif %}
-          {% if dj.social.website %}<a href="{{ dj.social.website }}" target="_blank" style="color:var(--muted); font-size:.875rem;">🌐 Website → {{ dj.social.website }}</a>{% endif %}
-          {% if dj.social.discord %}<span style="color:var(--muted); font-size:.875rem;">💬 Discord: {{ dj.social.discord }}</span>{% endif %}
+      <!-- Links sociais -->
+      {% set has_social = dj.social and (dj.social.twitch or dj.social.youtube or dj.social.website or dj.social.discord) %}
+      {% if has_social %}
+        <div class="detail-section">
+          <div class="detail-label">Links</div>
+          <div style="display:flex; flex-direction:column; gap:.4rem; margin-top:.35rem;">
+            {% if dj.social.twitch %}
+              <a href="{{ dj.social.twitch }}" target="_blank" style="color:var(--muted); font-size:.875rem;">
+                🎮 Twitch → {{ dj.social.twitch }}
+              </a>
+            {% endif %}
+            {% if dj.social.youtube %}
+              <a href="{{ dj.social.youtube }}" target="_blank" style="color:var(--muted); font-size:.875rem;">
+                ▶ YouTube → {{ dj.social.youtube }}
+              </a>
+            {% endif %}
+            {% if dj.social.website %}
+              <a href="{{ dj.social.website }}" target="_blank" style="color:var(--muted); font-size:.875rem;">
+                🌐 Website → {{ dj.social.website }}
+              </a>
+            {% endif %}
+            {% if dj.social.discord %}
+              <span style="color:var(--muted); font-size:.875rem;">
+                💬 Discord: {{ dj.social.discord }}
+              </span>
+            {% endif %}
+          </div>
         </div>
-      </div>
       {% endif %}
     </div>
 
-    <!-- COLUNA LATERAL — Contratar -->
+    <!-- COLUNA LATERAL -->
     <div>
       <div class="card">
         <div class="card-title" style="margin-bottom:1rem;">Contratar {{ dj.artist_name }}</div>
@@ -75,32 +128,55 @@
           {% else %}
             {% if dj.hourly_rate %}
               <div style="font-size:.8rem; color:var(--muted);">Por hora</div>
-              <div style="font-size:1.5rem; font-weight:500; color:var(--accent);">{{ dj.hourly_rate | currency }} <span style="font-size:.875rem; color:var(--muted);">{{ dj.currency }}</span></div>
+              <div style="font-size:1.5rem; font-weight:500; color:var(--accent);">
+                {{ dj.hourly_rate | currency }}
+                <span style="font-size:.875rem; color:var(--muted);">{{ dj.currency }}</span>
+              </div>
             {% endif %}
             {% if dj.event_rate %}
               <div style="font-size:.8rem; color:var(--muted); margin-top:.5rem;">Por evento</div>
-              <div style="font-size:1.25rem; font-weight:500; color:var(--text);">{{ dj.event_rate | currency }} {{ dj.currency }}</div>
+              <div style="font-size:1.25rem; font-weight:500; color:var(--text);">
+                {{ dj.event_rate | currency }} {{ dj.currency }}
+              </div>
             {% endif %}
-            {% if dj.negotiable %}<div style="font-size:.8rem; color:var(--muted); margin-top:.35rem;">✓ Valor negociável</div>{% endif %}
+            {% if dj.negotiable %}
+              <div style="font-size:.8rem; color:var(--muted); margin-top:.35rem;">✓ Valor negociável</div>
+            {% endif %}
           {% endif %}
         </div>
 
         <hr class="divider-line" />
 
-        {% if is_logged_in and current_user.role != 'dj' %}
-          <a href="{{ url_for('bookings.new_booking', dj_id=dj.id) }}" class="btn btn-primary btn-block btn-lg">Enviar proposta</a>
-        {% elif not is_logged_in %}
-          <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-block">Faça login para contratar</a>
+        {% if is_owner %}
+          <a href="{{ url_for('djs.my_profile') }}" class="btn btn-outline btn-block">
+            Editar meu perfil
+          </a>
+        {% elif is_logged_in and current_user.role != 'dj' and not current_user.is_dj %}
+          <a href="{{ url_for('bookings.new_booking', dj_id=dj.id) }}"
+             class="btn btn-primary btn-block btn-lg">Enviar proposta</a>
+        {% elif is_logged_in %}
+          <a href="{{ url_for('bookings.new_booking', dj_id=dj.id) }}"
+             class="btn btn-primary btn-block btn-lg">Enviar proposta</a>
         {% else %}
-          <div style="font-size:.8rem; color:var(--muted); text-align:center;">DJs não podem contratar outros DJs.</div>
+          <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-block">
+            Faça login para contratar
+          </a>
         {% endif %}
       </div>
 
-      <div class="card mt-2" style="font-size:.875rem;">
-        <div class="detail-label" style="margin-bottom:.75rem;">Informações</div>
-        {% if dj.timezone %}<div style="margin-bottom:.4rem; color:var(--muted);">🕐 Fuso: <span style="color:var(--text);">{{ dj.timezone }}</span></div>{% endif %}
-        {% if dj.experience_years %}<div style="margin-bottom:.4rem; color:var(--muted);">📅 Experiência: <span style="color:var(--text);">{{ dj.experience_years }} anos</span></div>{% endif %}
-      </div>
+      {% if dj.equipment or dj.event_experience %}
+        <div class="card mt-2">
+          <div class="detail-label" style="margin-bottom:.75rem;">Informações técnicas</div>
+          {% if dj.equipment %}
+            <div style="font-size:.8rem; color:var(--muted); margin-bottom:.25rem;">Equipamentos</div>
+            <p style="font-size:.875rem; color:var(--text); margin-bottom:.75rem;">{{ dj.equipment }}</p>
+          {% endif %}
+          {% if dj.event_experience %}
+            <div style="font-size:.8rem; color:var(--muted); margin-bottom:.25rem;">Experiência</div>
+            <p style="font-size:.875rem; color:var(--text);">{{ dj.event_experience }}</p>
+          {% endif %}
+        </div>
+      {% endif %}
     </div>
   </div>
 </div>
