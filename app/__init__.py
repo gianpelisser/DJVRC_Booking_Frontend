@@ -30,8 +30,14 @@ def create_app(config_name: str = "development") -> Flask:
     @app.route("/")
     def index():
         from .core.api import api_get
-        djs_data = api_get("/djs/?per_page=8")
+        # DJs em destaque
+        djs_data = api_get("/djs/", params={"per_page": "8", "sort": "recent"})
         djs = djs_data.get("data", {}).get("djs", []) if djs_data else []
-        return render_template("index.html", djs=djs)
+
+        # Estatísticas reais do endpoint dedicado
+        stats_data = api_get("/djs/stats")
+        stats = stats_data.get("data", {}) if stats_data else {}
+
+        return render_template("index.html", djs=djs, stats=stats)
 
     return app

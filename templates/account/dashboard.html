@@ -3,14 +3,15 @@
 {% block content %}
 <div class="container" style="max-width:780px; padding-top:2rem; padding-bottom:4rem;">
 
-  <!-- Header da conta -->
+  <!-- Header -->
   <div style="display:flex; align-items:center; gap:1.25rem; margin-bottom:2.5rem;">
     {% if user.discord_id and user.discord_avatar %}
       <img src="https://cdn.discordapp.com/avatars/{{ user.discord_id }}/{{ user.discord_avatar }}.png"
            style="width:64px; height:64px; border-radius:50%; border:2px solid var(--border);"
            onerror="this.style.display='none'" />
     {% else %}
-      <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,#00b4d8,#0077b6);
+      <div style="width:64px; height:64px; border-radius:50%;
+                  background:linear-gradient(135deg,#00b4d8,#0077b6);
                   display:flex; align-items:center; justify-content:center;
                   font-family:var(--font-d); font-size:1.5rem; color:#fff; flex-shrink:0;">
         {{ user.username[0].upper() }}
@@ -20,24 +21,17 @@
       <h1 style="font-size:clamp(1.5rem,4vw,2.2rem); margin-bottom:.2rem;">{{ user.username }}</h1>
       <div style="display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;">
         <span class="badge badge-contractor">Usuário</span>
-        {% if user.is_dj %}
-          <span class="badge badge-dj">DJ</span>
-        {% endif %}
+        {% if user.is_dj %}<span class="badge badge-dj">DJ</span>{% endif %}
         {% if user.discord_username %}
-          <span style="font-size:.8rem; color:var(--muted);">
-            Discord: {{ user.discord_username }}
-          </span>
+          <span style="font-size:.8rem; color:var(--muted);">Discord: {{ user.discord_username }}</span>
         {% endif %}
       </div>
     </div>
   </div>
 
-  <!-- SESSÃO 1: Dados da conta -->
+  <!-- Dados da conta -->
   <div class="card mb-3">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
-      <div class="card-title">Dados da conta</div>
-    </div>
-
+    <div class="card-title" style="margin-bottom:1.25rem;">Dados da conta</div>
     <form method="post" action="{{ url_for('account.update') }}">
       <div class="form-row">
         <div class="form-group">
@@ -50,105 +44,108 @@
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Nova senha <span style="color:var(--muted); font-weight:300;">(deixe em branco para manter)</span></label>
-        <input class="form-input" type="password" name="password" placeholder="mínimo 8 caracteres" minlength="8" />
+        <label class="form-label">Nova senha
+          <span style="color:var(--muted); font-weight:300;">(deixe em branco para manter)</span>
+        </label>
+        <input class="form-input" type="password" name="password"
+               placeholder="mínimo 8 caracteres" minlength="8" />
       </div>
       <button type="submit" class="btn btn-primary">Salvar alterações</button>
     </form>
   </div>
 
-  <!-- SESSÃO 2: Modo DJ -->
+  <!-- Modo DJ -->
   <div class="card mb-3">
-    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
-      <div>
-        <div class="card-title" style="margin-bottom:.35rem;">Modo DJ</div>
-        <p style="font-size:.875rem; color:var(--muted); max-width:420px; margin:0;">
-          {% if user.is_dj %}
-            Sua conta está com o modo DJ ativo. Você pode criar e editar seu perfil público de DJ.
-          {% else %}
+    {% if not user.is_dj %}
+      <!-- Conta ainda não é DJ -->
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+        <div>
+          <div class="card-title" style="margin-bottom:.35rem;">Modo DJ</div>
+          <p style="font-size:.875rem; color:var(--muted); max-width:420px; margin:0;">
             Ative para criar seu perfil de DJ e receber propostas de eventos como artista.
             Você continua podendo contratar outros DJs normalmente.
-          {% endif %}
-        </p>
-      </div>
-      <div style="flex-shrink:0;">
-        {% if user.is_dj %}
-          <a href="{{ url_for('djs.my_profile') }}" class="btn btn-primary">
-            Editar perfil DJ
-          </a>
-        {% else %}
+          </p>
+        </div>
+        <div style="flex-shrink:0;">
           <form method="post" action="{{ url_for('account.activate_dj') }}">
             <button type="submit" class="btn btn-outline">Ativar modo DJ</button>
           </form>
-        {% endif %}
-      </div>
-    </div>
-
-    <!-- Preview do perfil DJ se existir -->
-    {% if user.is_dj and dj_profile %}
-      <hr class="divider-line" />
-      <div style="display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap;">
-        <!-- Avatar/Banner preview -->
-        <div style="position:relative; width:80px; height:80px; flex-shrink:0;">
-          {% if dj_profile.banner_url %}
-            <div style="width:80px; height:80px; border-radius:var(--radius-sm); overflow:hidden;">
-              <img src="{{ dj_profile.banner_url }}" style="width:100%; height:100%; object-fit:cover;"
-                   onerror="this.parentElement.style.background='var(--bg3)'" />
-            </div>
-          {% else %}
-            <div style="width:80px; height:80px; border-radius:var(--radius-sm); background:var(--bg3);
-                        display:flex; align-items:center; justify-content:center;
-                        font-family:var(--font-d); font-size:1.5rem; color:rgba(0,229,255,.3);">
-              DJ
-            </div>
-          {% endif %}
-          {% if dj_profile.avatar_url %}
-            <img src="{{ dj_profile.avatar_url }}"
-                 style="position:absolute; bottom:-8px; left:-8px;
-                        width:36px; height:36px; border-radius:50%;
-                        border:2px solid var(--bg); object-fit:cover;" />
-          {% endif %}
         </div>
+      </div>
+
+    {% elif dj_profile %}
+      <!-- DJ com perfil criado -->
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
         <div>
-          <div style="font-weight:500; color:var(--text);">{{ dj_profile.artist_name }}</div>
-          <div style="font-size:.8rem; color:var(--muted); margin-bottom:.5rem;">
+          <div class="card-title" style="margin-bottom:.35rem;">Perfil DJ</div>
+          <div style="font-size:.8rem;">
             {% if dj_profile.is_approved %}
-              <span style="color:var(--success);">✓ Perfil aprovado e visível</span>
+              <span style="color:var(--success);">✓ Aprovado e visível ao público</span>
             {% else %}
-              <span style="color:var(--warning);">⏳ Aguardando aprovação</span>
+              <span style="color:var(--warning);">⏳ Aguardando aprovação do admin</span>
             {% endif %}
           </div>
-          <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
-            {% for g in dj_profile.genres[:3] %}
+        </div>
+        <div style="display:flex; gap:.5rem; flex-shrink:0;">
+          <a href="{{ url_for('djs.my_profile') }}" class="btn btn-primary">Editar perfil DJ</a>
+          <a href="{{ url_for('djs.view_my_public_profile') }}"
+             class="btn btn-ghost btn-sm" target="_blank">Ver público →</a>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div style="display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap;
+                  background:var(--bg3); border-radius:var(--radius-sm); padding:1rem;">
+        <div style="position:relative; width:72px; height:72px; flex-shrink:0;">
+          <div style="width:72px; height:72px; border-radius:var(--radius-sm); overflow:hidden;
+                      background:linear-gradient(135deg,#001a2e,#003a5c);">
+            {% if dj_profile.banner_url %}
+              <img src="{{ dj_profile.banner_url }}"
+                   style="width:100%; height:100%; object-fit:cover;"
+                   onerror="this.style.display='none'" />
+            {% endif %}
+          </div>
+          {% if dj_profile.avatar_url %}
+            <img src="{{ dj_profile.avatar_url }}"
+                 style="position:absolute; bottom:-6px; left:-6px;
+                        width:32px; height:32px; border-radius:50%;
+                        border:2px solid var(--bg3); object-fit:cover;" />
+          {% endif %}
+        </div>
+        <div style="flex:1; min-width:0;">
+          <div style="font-weight:500; color:var(--text); margin-bottom:.35rem;">
+            {{ dj_profile.artist_name }}
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:.35rem;">
+            {% for g in dj_profile.genres[:4] %}
               <span class="tag tag-cyan">{{ g.name }}</span>
             {% endfor %}
           </div>
         </div>
-        <div style="margin-left:auto; display:flex; gap:.5rem;">
-          <a href="{{ url_for('djs.profile', dj_id=dj_profile.id) }}"
-             class="btn btn-ghost btn-sm" target="_blank">Ver público</a>
-          <a href="{{ url_for('djs.my_profile') }}" class="btn btn-ghost btn-sm">Editar</a>
-        </div>
       </div>
-    {% elif user.is_dj and not dj_profile %}
-      <hr class="divider-line" />
-      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
-        <p style="font-size:.875rem; color:var(--muted); margin:0;">
-          Você ainda não criou seu perfil de DJ.
-        </p>
-        <a href="{{ url_for('djs.my_profile') }}" class="btn btn-primary btn-sm">
-          Criar perfil DJ
-        </a>
+
+    {% else %}
+      <!-- DJ sem perfil ainda -->
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+        <div>
+          <div class="card-title" style="margin-bottom:.35rem;">Perfil DJ</div>
+          <p style="font-size:.875rem; color:var(--muted); max-width:420px; margin:0;">
+            Modo DJ ativo! Crie seu perfil para aparecer nas buscas e receber propostas.
+          </p>
+        </div>
+        <div style="flex-shrink:0;">
+          <a href="{{ url_for('djs.my_profile') }}" class="btn btn-primary">Criar perfil DJ</a>
+        </div>
       </div>
     {% endif %}
   </div>
 
-  <!-- SESSÃO 3: Atalhos rápidos -->
+  <!-- Atalhos -->
   <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
     <a href="{{ url_for('bookings.list_bookings') }}" class="card card-hover" style="text-decoration:none;">
       <div style="font-size:1.5rem; margin-bottom:.5rem;">📋</div>
       <div class="card-title">Meus Bookings</div>
-      <div class="card-sub">Ver propostas enviadas e recebidas</div>
+      <div class="card-sub">Propostas enviadas e recebidas</div>
     </a>
     <a href="{{ url_for('events.list_events') }}" class="card card-hover" style="text-decoration:none;">
       <div style="font-size:1.5rem; margin-bottom:.5rem;">🎉</div>

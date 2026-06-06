@@ -1,53 +1,123 @@
 {% extends "base.html" %}
 {% block title %}Disponibilidade — DJ VRC Booking{% endblock %}
+
+{% set DAYS = [
+  (0,"Segunda-feira"), (1,"Terça-feira"), (2,"Quarta-feira"),
+  (3,"Quinta-feira"),  (4,"Domingo"),     (5,"Sexta-feira"), (6,"Sábado")
+] %}
+
+{# Indexa disponibilidade salva por weekday para fácil acesso #}
+{% set saved = {} %}
+{% for a in availability if a.weekday is not none %}
+  {% if saved.update({a.weekday: a}) %}{% endif %}
+{% endfor %}
+
+{% set blocked_dates = availability | selectattr("blocked_date") | list %}
+
 {% block content %}
 <div class="container" style="max-width:680px; padding-top:2rem; padding-bottom:4rem;">
-  <div class="page-header">
-    <h1>DISPONIBILIDADE</h1>
-    <p>Defina seus horários e datas bloqueadas</p>
+
+  <div style="display:flex; align-items:center; gap:1rem; margin-bottom:2rem; flex-wrap:wrap;">
+    <a href="{{ url_for('djs.my_profile') }}" class="btn btn-ghost btn-sm">← Perfil DJ</a>
+    <h1 style="font-size:clamp(1.5rem,4vw,2.2rem);">DISPONIBILIDADE</h1>
   </div>
 
   <form method="post" id="availForm">
+
     <div class="card mb-3">
       <div class="card-title mb-2">Dias e horários disponíveis</div>
-      <div id="weekSlots">
-        {% for day_num, day_name in [(5,'Sexta-feira'),(6,'Sábado'),(0,'Segunda'),(1,'Terça'),(2,'Quarta'),(3,'Quinta'),(4,'Domingo')] %}
-        <div style="display:grid; grid-template-columns:140px 1fr 1fr; gap:.75rem; align-items:center; padding:.6rem 0; border-bottom:1px solid var(--border);">
-          <label class="form-check">
-            <input type="checkbox" name="weekday[]" value="{{ day_num }}" /> {{ day_name }}
-          </label>
-          <input type="time" name="start_time[]" value="20:00" class="form-input" style="padding:.4rem .6rem;" />
-          <input type="time" name="end_time[]" value="02:00" class="form-input" style="padding:.4rem .6rem;" />
-        </div>
+      <p style="font-size:.8rem; color:var(--muted); margin-bottom:1.25rem;">
+        Marque os dias em que você costuma estar disponível e informe o horário preferencial.
+      </p>
+
+      <div style="display:flex; flex-direction:column; gap:.5rem;">
+        {% for day_num, day_name in DAYS | sort(attribute=0) %}
+          {% set s = saved.get(day_num) %}
+          {% set is_checked = s is not none %}
+          <div style="display:grid; grid-template-columns:180px 1fr 1fr; gap:.75rem;
+                      align-items:center; padding:.6rem .75rem; border-radius:var(--radius-sm);
+                      border:1px solid {{ 'rgba(0,229,255,.25)' if is_checked else 'var(--border)' }};
+                      background:{{ 'rgba(0,229,255,.04)' if is_checked else 'transparent' }};
+                      transition:all .2s;" class="day-row">
+            <label style="display:flex; align-items:center; gap:.6rem; cursor:pointer; font-size:.875rem;">
+              <input type="checkbox" name="weekday[]" value="{{ day_num }}"
+                     {% if is_checked %}checked{% endif %}
+                     style="accent-color:var(--accent); width:16px; height:16px; cursor:pointer;"
+                     onchange="toggleDay(this)" />
+              <span style="color:var(--text);">{{ day_name }}</span>
+            </label>
+            <input type="time" name="start_time[]"
+                   value="{{ s.start_time if s and s.start_time else '20:00' }}"
+                   class="form-input" style="padding:.4rem .6rem;"
+                   {% if not is_checked %}disabled{% endif %} />
+            <input type="time" name="end_time[]"
+                   value="{{ s.end_time if s and s.end_time else '02:00' }}"
+                   class="form-input" style="padding:.4rem .6rem;"
+                   {% if not is_checked %}disabled{% endif %} />
+          </div>
         {% endfor %}
+      </div>
+      <div style="display:grid; grid-template-columns:180px 1fr 1fr; gap:.75rem;
+                  padding:.4rem .75rem; margin-top:.25rem;">
+        <div></div>
+        <div style="font-size:.7rem; color:var(--muted); text-align:center;">Início</div>
+        <div style="font-size:.7rem; color:var(--muted); text-align:center;">Fim</div>
       </div>
     </div>
 
     <div class="card mb-3">
       <div class="card-title mb-2">Datas bloqueadas</div>
+      <p style="font-size:.8rem; color:var(--muted); margin-bottom:1rem;">
+        Datas específicas em que você não estará disponível (feriados, viagens, etc).
+      </p>
       <div id="blockedDates">
-        <div style="display:flex; gap:.75rem; margin-bottom:.5rem;">
-          <input type="date" name="blocked_date[]" class="form-input" />
-          <button type="button" class="btn btn-ghost btn-sm" onclick="addBlockedDate()">+ Adicionar</button>
-        </div>
+        {% if blocked_dates %}
+          {% for b in blocked_dates %}
+            <div style="display:flex; gap:.75rem; margin-bottom:.5rem;" class="blocked-row">
+              <input type="date" name="blocked_date[]" value="{{ b.blocked_date }}" class="form-input" />
+              <button type="button" class="btn btn-danger btn-sm"
+                      onclick="this.parentElement.remove()">✕</button>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div style="display:flex; gap:.75rem; margin-bottom:.5rem;" class="blocked-row">
+            <input type="date" name="blocked_date[]" class="form-input" />
+            <button type="button" class="btn btn-danger btn-sm"
+                    onclick="this.parentElement.remove()">✕</button>
+          </div>
+        {% endif %}
       </div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="addBlockedDate()">
+        + Adicionar data bloqueada
+      </button>
     </div>
 
     <div style="display:flex; gap:1rem;">
-      <button type="submit" class="btn btn-primary">Salvar disponibilidade</button>
-      <a href="{{ url_for('djs.my_profile') }}" class="btn btn-ghost">← Voltar ao perfil</a>
+      <button type="submit" class="btn btn-primary btn-lg">Salvar disponibilidade</button>
+      <a href="{{ url_for('djs.my_profile') }}" class="btn btn-ghost">Cancelar</a>
     </div>
   </form>
 </div>
 {% endblock %}
+
 {% block scripts %}
 <script>
+function toggleDay(cb) {
+  const row = cb.closest('.day-row');
+  const inputs = row.querySelectorAll('input[type="time"]');
+  inputs.forEach(i => i.disabled = !cb.checked);
+  row.style.borderColor = cb.checked ? 'rgba(0,229,255,.25)' : 'var(--border)';
+  row.style.background  = cb.checked ? 'rgba(0,229,255,.04)' : 'transparent';
+}
+
 function addBlockedDate() {
   const container = document.getElementById('blockedDates');
   const div = document.createElement('div');
+  div.className = 'blocked-row';
   div.style.cssText = 'display:flex; gap:.75rem; margin-bottom:.5rem;';
-  div.innerHTML = '<input type="date" name="blocked_date[]" class="form-input" /><button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">✕</button>';
-  container.insertBefore(div, container.lastElementChild);
+  div.innerHTML = '<input type="date" name="blocked_date[]" class="form-input" />' +
+                  '<button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">✕</button>';
+  container.appendChild(div);
 }
 </script>
 {% endblock %}
