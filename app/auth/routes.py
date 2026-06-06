@@ -35,11 +35,12 @@ def register():
         return redirect(url_for("index"))
     # Dados pre-preenchidos vindos do Discord (query params)
     prefill = {
-        "discord_id":       request.args.get("discord_id", ""),
-        "discord_username": request.args.get("discord_username", ""),
-        "discord_avatar":   request.args.get("discord_avatar", ""),
-        "email":            request.args.get("email", ""),
-        "username":         request.args.get("username", ""),
+        "discord_id":           request.args.get("discord_id", ""),
+        "discord_username":     request.args.get("discord_username", ""),
+        "discord_display_name": request.args.get("discord_display_name", ""),
+        "discord_avatar":       request.args.get("discord_avatar", ""),
+        "email":                request.args.get("email", ""),
+        "username":             request.args.get("username", ""),
     }
     via_discord = bool(prefill["discord_id"])
     return render_template("auth/register.html", prefill=prefill, via_discord=via_discord)
@@ -54,17 +55,19 @@ def register_post():
     is_dj    = form.get("is_dj") == "on"
 
     # Dados do Discord (hidden fields, presentes se veio pelo OAuth)
-    discord_id       = form.get("discord_id", "").strip()
-    discord_username = form.get("discord_username", "").strip()
-    discord_avatar   = form.get("discord_avatar", "").strip()
+    discord_id           = form.get("discord_id", "").strip()
+    discord_username     = form.get("discord_username", "").strip()
+    discord_display_name = form.get("discord_display_name", "").strip()
+    discord_avatar       = form.get("discord_avatar", "").strip()
 
     payload = {
         "username":         username,
         "email":            email,
         "is_dj":            is_dj,
-        "discord_id":       discord_id or None,
-        "discord_username": discord_username or None,
-        "discord_avatar":   discord_avatar or None,
+        "discord_id":           discord_id or None,
+        "discord_username":     discord_username or None,
+        "discord_display_name": discord_display_name or None,
+        "discord_avatar":       discord_avatar or None,
     }
     if not discord_id:
         payload["password"] = password
@@ -186,11 +189,12 @@ def discord_callback():
     if action == "register":
         d = data["data"]
         params = urlencode({
-            "discord_id":       d.get("discord_id", ""),
-            "discord_username": d.get("discord_username", ""),
-            "discord_avatar":   d.get("discord_avatar", ""),
-            "email":            d.get("email", ""),
-            "username":         d.get("suggested_username", ""),
+            "discord_id":           d.get("discord_id", ""),
+            "discord_username":     d.get("discord_username", ""),
+            "discord_display_name": d.get("discord_display_name", ""),
+            "discord_avatar":       d.get("discord_avatar", ""),
+            "email":                d.get("email", ""),
+            "username":             d.get("suggested_username", ""),
         })
         flash("Quase la! Complete seu cadastro para continuar.", "info")
         return redirect(url_for("auth.register") + "?" + params)

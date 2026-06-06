@@ -290,8 +290,18 @@ tbody tr:last-child td { border-bottom: none; }
 }
 @media (max-width: 640px) {
   .nav-links { display: none; }
+  .nav-links.mobile-open {
+    display: flex; flex-direction: column;
+    position: fixed; top: 64px; left: 0; right: 0;
+    background: rgba(8,9,12,.97); backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem; gap: .25rem; z-index: 99; list-style: none;
+  }
+  .nav-links.mobile-open a { padding: .75rem 0; font-size: 1rem; border-bottom: 1px solid var(--border); }
+  .nav-hamburger { display: flex !important; }
   .container { padding: 0 1rem; }
   .hero-content { padding: 0 1rem; }
   .hero-stats { gap: 1.5rem; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
 }
+.nav-hamburger { display: none; }

@@ -23,7 +23,14 @@
         <span class="badge badge-contractor">Usuário</span>
         {% if user.is_dj %}<span class="badge badge-dj">DJ</span>{% endif %}
         {% if user.discord_username %}
-          <span style="font-size:.8rem; color:var(--muted);">Discord: {{ user.discord_username }}</span>
+          <span style="font-size:.8rem; color:var(--muted);">
+            Discord:
+            {% if user.discord_display_name and user.discord_display_name != user.discord_username %}
+              {{ user.discord_display_name }} (@{{ user.discord_username }})
+            {% else %}
+              @{{ user.discord_username }}
+            {% endif %}
+          </span>
         {% endif %}
       </div>
     </div>
