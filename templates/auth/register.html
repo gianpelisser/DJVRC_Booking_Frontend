@@ -13,8 +13,8 @@
              onerror="this.style.display='none'" />
       {% endif %}
       <div>
-        <div class="auth-title" style="font-size:1.6rem; margin-bottom:0;">OLA, {{ prefill.discord_username }}!</div>
-        <p style="font-size:.85rem; color:var(--muted); margin:0;">Discord conectado. Complete seu cadastro.</p>
+        <div class="auth-title" style="font-size:1.6rem; margin-bottom:0;">Olá, {{ prefill.discord_display_name or prefill.discord_username }}!</div>
+        <p style="font-size:.8rem; color:var(--muted); margin:.1rem 0 0;">@{{ prefill.discord_username }} · Discord conectado. Complete seu cadastro.</p>
       </div>
     </div>
     {% else %}
@@ -32,9 +32,10 @@
 
       <!-- Hidden fields do Discord (presentes apenas quando via_discord=True) -->
       {% if via_discord %}
-        <input type="hidden" name="discord_id"       value="{{ prefill.discord_id }}" />
-        <input type="hidden" name="discord_username" value="{{ prefill.discord_username }}" />
-        <input type="hidden" name="discord_avatar"   value="{{ prefill.discord_avatar }}" />
+        <input type="hidden" name="discord_id"           value="{{ prefill.discord_id }}" />
+        <input type="hidden" name="discord_username"     value="{{ prefill.discord_username }}" />
+        <input type="hidden" name="discord_display_name" value="{{ prefill.discord_display_name }}" />
+        <input type="hidden" name="discord_avatar"       value="{{ prefill.discord_avatar }}" />
       {% endif %}
 
       <div class="form-group">

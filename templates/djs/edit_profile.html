@@ -329,6 +329,64 @@
       </div>
     </div>
 
+    <!-- Notificações Discord -->
+    <div class="card mb-3">
+      <div class="card-title mb-2">Notificações no Discord</div>
+      <p style="font-size:.85rem; color:var(--muted); margin-bottom:1.25rem;">
+        Configure como você quer ser notificado quando receber uma proposta de booking.
+      </p>
+
+      <div style="display:flex; flex-direction:column; gap:.75rem; margin-bottom:1.25rem;">
+        <label class="form-check" style="align-items:flex-start; gap:.75rem;
+               padding:.85rem 1rem; background:var(--bg3); border-radius:var(--radius-sm);
+               border:1px solid var(--border); cursor:pointer;">
+          <input type="checkbox" name="notify_dm"
+                 {% if profile.notify_dm is not defined or profile.notify_dm %}checked{% endif %}
+                 style="margin-top:.2rem; accent-color:var(--accent);" />
+          <div>
+            <div style="font-weight:500; color:var(--text); margin-bottom:.15rem;">
+              Receber DM no Discord
+            </div>
+            <div style="font-size:.8rem; color:var(--muted);">
+              O bot vai te mandar uma mensagem privada quando chegar uma proposta.
+              Requer que você tenha feito login com Discord na plataforma.
+            </div>
+          </div>
+        </label>
+
+        <label class="form-check" style="align-items:flex-start; gap:.75rem;
+               padding:.85rem 1rem; background:var(--bg3); border-radius:var(--radius-sm);
+               border:1px solid var(--border); cursor:pointer;">
+          <input type="checkbox" name="notify_webhook" id="notifyWebhookCb"
+                 {% if profile.notify_webhook %}checked{% endif %}
+                 style="margin-top:.2rem; accent-color:var(--accent);"
+                 onchange="document.getElementById('webhookSection').style.display=this.checked?'block':'none'" />
+          <div>
+            <div style="font-weight:500; color:var(--text); margin-bottom:.15rem;">
+              Usar meu webhook do Discord
+            </div>
+            <div style="font-size:.8rem; color:var(--muted);">
+              Posta notificações em um canal do seu servidor Discord via webhook.
+              Útil para avisar sua equipe de novos bookings e quando um evento for confirmado.
+            </div>
+          </div>
+        </label>
+      </div>
+
+      <div id="webhookSection"
+           style="display:{% if profile.notify_webhook %}block{% else %}none{% endif %};">
+        <div class="form-group">
+          <label class="form-label">URL do Webhook</label>
+          <input class="form-input" type="url" name="webhook_url"
+                 value="{{ profile.webhook_url or '' }}"
+                 placeholder="https://discord.com/api/webhooks/..." />
+          <div class="form-hint">
+            Para criar: no Discord, vá em Canal → ⚙ Configurações → Integrações → Webhooks → Novo Webhook → Copiar URL.
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div style="display:flex; gap:1rem; flex-wrap:wrap;">
       <button type="submit" class="btn btn-primary btn-lg">Salvar perfil</button>
       <a href="{{ url_for('djs.availability') }}" class="btn btn-ghost">Disponibilidade →</a>
