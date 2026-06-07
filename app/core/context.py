@@ -20,6 +20,24 @@ def register_context(app):
         except (ValueError, TypeError):
             return value
 
+    @app.template_filter("duracao")
+    def duracao_filter(minutos):
+        """Converte minutos para formato legível: 90 → 1h 30min, 60 → 1 hora, 45 → 45 min"""
+        if not minutos:
+            return "—"
+        try:
+            m = int(minutos)
+        except (ValueError, TypeError):
+            return str(minutos)
+        h = m // 60
+        rest = m % 60
+        if h == 0:
+            return f"{rest} min"
+        elif rest == 0:
+            return f"{h} hora" if h == 1 else f"{h} horas"
+        else:
+            return f"{h}h {rest}min"
+
     @app.template_filter("date_br")
     def date_br_filter(value):
         """Converte 2025-12-31 → 31/12/2025."""

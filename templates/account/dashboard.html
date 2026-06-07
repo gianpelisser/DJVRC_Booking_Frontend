@@ -147,6 +147,69 @@
     {% endif %}
   </div>
 
+  <!-- Notificações Discord (só aparece quando is_dj e tem perfil) -->
+  {% if user.is_dj and dj_profile %}
+  <div class="card mb-3">
+    <div class="card-title" style="margin-bottom:1.25rem;">Notificações no Discord</div>
+    <form method="post" action="{{ url_for('account.update_notifications') }}">
+      <div style="display:flex; flex-direction:column; gap:.75rem; margin-bottom:1.25rem;">
+
+        <label style="display:flex; align-items:flex-start; gap:.75rem;
+                      padding:.85rem 1rem; background:var(--bg3);
+                      border-radius:var(--radius-sm); cursor:pointer;
+                      border:1px solid {{ 'rgba(0,229,255,.25)' if dj_profile.notify_dm else 'var(--border)' }};">
+          <input type="checkbox" name="notify_dm"
+                 {% if dj_profile.notify_dm %}checked{% endif %}
+                 style="margin-top:.2rem; accent-color:var(--accent);" />
+          <div>
+            <div style="font-weight:500; color:var(--text); margin-bottom:.15rem;">
+              🔔 Receber DM quando chegar uma proposta
+            </div>
+            <div style="font-size:.8rem; color:var(--muted);">
+              O bot envia uma mensagem privada no Discord com todos os detalhes da proposta.
+              Requer login com Discord na plataforma.
+            </div>
+          </div>
+        </label>
+
+        <label style="display:flex; align-items:flex-start; gap:.75rem;
+                      padding:.85rem 1rem; background:var(--bg3);
+                      border-radius:var(--radius-sm); cursor:pointer;
+                      border:1px solid {{ 'rgba(0,229,255,.25)' if dj_profile.notify_webhook else 'var(--border)' }};">
+          <input type="checkbox" name="notify_webhook" id="notifyWh"
+                 {% if dj_profile.notify_webhook %}checked{% endif %}
+                 style="margin-top:.2rem; accent-color:var(--accent);"
+                 onchange="document.getElementById('whSection').style.display=this.checked?'block':'none'" />
+          <div>
+            <div style="font-weight:500; color:var(--text); margin-bottom:.15rem;">
+              📡 Usar webhook do meu servidor Discord
+            </div>
+            <div style="font-size:.8rem; color:var(--muted);">
+              Posta notificações num canal do seu servidor. Ideal para avisar sua equipe.
+            </div>
+          </div>
+        </label>
+      </div>
+
+      <div id="whSection"
+           style="display:{% if dj_profile.notify_webhook %}block{% else %}none{% endif %};
+                  margin-bottom:1rem;">
+        <div class="form-group">
+          <label class="form-label">URL do Webhook</label>
+          <input class="form-input" type="url" name="webhook_url"
+                 value="{{ dj_profile.webhook_url or '' }}"
+                 placeholder="https://discord.com/api/webhooks/..." />
+          <div class="form-hint">
+            Discord → Canal → ⚙ Configurações → Integrações → Webhooks → Novo Webhook → Copiar URL
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-sm">Salvar preferências</button>
+    </form>
+  </div>
+  {% endif %}
+
   <!-- Atalhos -->
   <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
     <a href="{{ url_for('bookings.list_bookings') }}" class="card card-hover" style="text-decoration:none;">

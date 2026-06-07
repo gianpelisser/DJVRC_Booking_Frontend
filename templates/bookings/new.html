@@ -2,9 +2,35 @@
 {% block title %}Nova proposta para {{ dj.artist_name }} — DJ VRC Booking{% endblock %}
 {% block content %}
 <div class="container" style="max-width:680px; padding-top:2rem; padding-bottom:4rem;">
-  <div class="page-header">
-    <h1>ENVIAR PROPOSTA</h1>
-    <p>Para <strong style="color:var(--text);">{{ dj.artist_name }}</strong></p>
+
+  <div style="display:flex; align-items:center; gap:1rem; margin-bottom:2rem; flex-wrap:wrap;">
+    <a href="{{ url_for('djs.profile', dj_id=dj.id) }}" class="btn btn-ghost btn-sm">← Voltar</a>
+    <h1 style="font-size:clamp(1.5rem,4vw,2rem);">ENVIAR PROPOSTA</h1>
+  </div>
+
+  <!-- Info do DJ -->
+  <div class="card mb-3" style="display:flex; align-items:center; gap:1rem; padding:1rem 1.25rem;">
+    <div style="width:48px; height:48px; border-radius:50%; overflow:hidden; flex-shrink:0;
+                background:linear-gradient(135deg,#00b4d8,#0077b6);">
+      {% if dj.avatar_url %}
+        <img src="{{ dj.avatar_url }}" style="width:100%; height:100%; object-fit:cover;"
+             onerror="this.style.display='none'" />
+      {% else %}
+        <div data-initials="{{ dj.artist_name }}" style="width:100%; height:100%;"></div>
+      {% endif %}
+    </div>
+    <div>
+      <div style="font-weight:500; color:var(--text);">{{ dj.artist_name }}</div>
+      <div style="font-size:.8rem; color:var(--muted);">
+        {% for g in dj.genres[:3] %}<span class="tag tag-cyan" style="margin-right:.3rem;">{{ g.name }}</span>{% endfor %}
+      </div>
+    </div>
+    {% if dj.hourly_rate %}
+      <div style="margin-left:auto; text-align:right;">
+        <div style="font-size:.75rem; color:var(--muted);">sugerido</div>
+        <div style="font-weight:500; color:var(--accent);">{{ dj.hourly_rate | currency }}/h</div>
+      </div>
+    {% endif %}
   </div>
 
   <form method="post">
@@ -12,7 +38,8 @@
       <div class="card-title mb-2">Dados do evento</div>
       <div class="form-group">
         <label class="form-label">Nome do evento *</label>
-        <input class="form-input" type="text" name="event_name" required placeholder="Ex: Festa VR — Ano Novo" />
+        <input class="form-input" type="text" name="event_name" required
+               placeholder="Ex: Festa de Aniversário — Club Night VRChat" />
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -24,23 +51,48 @@
           <input class="form-input" type="time" name="event_time" required />
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Duração (minutos) *</label>
-          <input class="form-input" type="number" name="duration_minutes" value="60" min="15" max="480" required />
+
+      <!-- Duração flexível -->
+      <div class="form-group">
+        <label class="form-label">Duração *</label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem;">
+          <div>
+            <label class="form-label" style="font-size:.72rem;">Horas</label>
+            <select class="form-select" name="duration_hours" id="durH">
+              {% for h in range(0, 7) %}
+                <option value="{{ h }}" {% if h == 1 %}selected{% endif %}>{{ h }}h</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="form-label" style="font-size:.72rem;">Minutos</label>
+            <select class="form-select" name="duration_minutes_extra" id="durM">
+              <option value="0" selected>0 min</option>
+              <option value="15">15 min</option>
+              <option value="30">30 min</option>
+              <option value="45">45 min</option>
+            </select>
+          </div>
         </div>
+        <input type="hidden" name="duration_minutes" id="durTotal" value="60" />
+        <div class="form-hint" id="durPreview">Duração: 1 hora</div>
+      </div>
+
+      <div class="form-row">
         <div class="form-group">
           <label class="form-label">Plataforma</label>
           <select class="form-select" name="platform">
             <option value="">Selecione...</option>
-            <option>VRChat</option><option>VRCDN</option><option>Twitch</option>
-            <option>YouTube</option><option>Kick</option><option>Outro</option>
+            {% for p in ['VRChat','VRCDN','Twitch','YouTube','Kick','Outro'] %}
+              <option>{{ p }}</option>
+            {% endfor %}
           </select>
         </div>
       </div>
       <div class="form-group">
         <label class="form-label">Descrição do evento</label>
-        <textarea class="form-textarea" name="description" rows="3" placeholder="Detalhes sobre o evento, tema, público esperado..."></textarea>
+        <textarea class="form-textarea" name="description" rows="3"
+                  placeholder="Detalhes, tema, público esperado, suas expectativas..."></textarea>
       </div>
     </div>
 
@@ -51,27 +103,51 @@
           <label class="form-label">Valor</label>
           <input class="form-input" type="number" name="offered_value" step="0.01" min="0"
             placeholder="{% if dj.hourly_rate %}Sugerido: {{ dj.hourly_rate }}{% else %}Opcional{% endif %}" />
-          <div class="form-hint">
-            {% if dj.negotiable %}Este DJ aceita negociação.{% endif %}
-            {% if dj.minimum_rate %}Mínimo: {{ dj.minimum_rate | currency }} {{ dj.currency }}.{% endif %}
-          </div>
+          {% if dj.minimum_rate %}
+            <div class="form-hint">Mínimo: {{ dj.minimum_rate | currency }} {{ dj.currency }}</div>
+          {% endif %}
+          {% if dj.negotiable %}
+            <div class="form-hint">✓ Este DJ aceita negociação</div>
+          {% endif %}
         </div>
         <div class="form-group">
           <label class="form-label">Moeda</label>
           <select class="form-select" name="currency">
-            <option value="USD">USD</option>
-            <option value="BRL">BRL</option>
-            <option value="EUR">EUR</option>
+            {% for c in ['USD','BRL','EUR'] %}
+              <option value="{{ c }}" {% if (dj.currency or 'USD') == c %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
           </select>
         </div>
       </div>
     </div>
 
-    <div style="display:flex; gap:1rem; align-items:center;">
+    <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
       <button type="submit" class="btn btn-primary btn-lg">Enviar proposta</button>
       <a href="{{ url_for('djs.profile', dj_id=dj.id) }}" class="btn btn-ghost">Cancelar</a>
     </div>
-    <p class="form-hint mt-1">O DJ receberá uma notificação no Discord e poderá aceitar ou recusar.</p>
+    <p class="form-hint mt-1" style="margin-top:.75rem;">
+      O DJ receberá uma notificação no Discord e poderá aceitar ou recusar.
+    </p>
   </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function atualizaDuracao() {
+  const h = parseInt(document.getElementById('durH').value) || 0;
+  const m = parseInt(document.getElementById('durM').value) || 0;
+  const total = h * 60 + m;
+  document.getElementById('durTotal').value = total || 60;
+
+  let texto = '';
+  if (h === 0 && m === 0)     texto = '1 hora (mínimo)';
+  else if (h === 0)           texto = `${m} min`;
+  else if (m === 0)           texto = h === 1 ? '1 hora' : `${h} horas`;
+  else                        texto = `${h}h ${m}min`;
+  document.getElementById('durPreview').textContent = 'Duração: ' + texto;
+}
+document.getElementById('durH').addEventListener('change', atualizaDuracao);
+document.getElementById('durM').addEventListener('change', atualizaDuracao);
+</script>
 {% endblock %}

@@ -1,60 +1,123 @@
 {% extends "base.html" %}
 {% block title %}Meus Bookings — DJ VRC Booking{% endblock %}
+
+{% set STATUS_LABEL = {
+  '':'Todos','pending':'Pendentes','accepted':'Aceitos',
+  'declined':'Recusados','cancelled':'Cancelados','completed':'Concluídos'
+} %}
+{% set STATUS_BADGE = {
+  'pending':'warning','accepted':'confirmed','declined':'declined',
+  'cancelled':'cancelled','completed':'finished'
+} %}
+
 {% block content %}
 <div class="container">
   <div class="page-header">
-    <h1>MEUS BOOKINGS</h1>
-    <p>Gerencie suas propostas e contratações</p>
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+      <div>
+        <h1>MEUS BOOKINGS</h1>
+        <p>
+          {% if current_user.is_dj %}Propostas recebidas e enviadas
+          {% else %}Suas propostas de contratação{% endif %}
+        </p>
+      </div>
+      {% if not current_user.is_dj %}
+        <a href="{{ url_for('djs.list_djs') }}" class="btn btn-primary btn-sm">+ Contratar DJ</a>
+      {% endif %}
+    </div>
   </div>
 
-  <!-- Filtro status -->
+  <!-- Filtros -->
   <div style="display:flex; gap:.5rem; margin-bottom:2rem; flex-wrap:wrap;">
-    {% for s in ['', 'pending', 'accepted', 'declined', 'cancelled', 'completed'] %}
-      <a href="?status={{ s }}" class="page-btn {% if status_filter == s %}active{% endif %}">
-        {{ {'':'Todos','pending':'Pendentes','accepted':'Aceitos','declined':'Recusados','cancelled':'Cancelados','completed':'Concluídos'}[s] }}
+    {% for s in ['', 'pending', 'accepted', 'declined', 'cancelled'] %}
+      <a href="?status={{ s }}"
+         class="page-btn {% if status_filter == s %}active{% endif %}">
+        {{ STATUS_LABEL[s] }}
       </a>
     {% endfor %}
   </div>
 
   {% if bookings %}
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Evento</th>
-            <th>{% if current_user.role == 'contractor' %}DJ{% else %}Usuário{% endif %}</th>
-            <th>Data</th>
-            <th>Plataforma</th>
-            <th>Valor</th>
-            <th>Status</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for b in bookings %}
-          <tr>
-            <td style="color:var(--muted);">#{{ b.id }}</td>
-            <td><strong>{{ b.event_name }}</strong></td>
-            <td style="color:var(--muted);">
-              {% if current_user.role == 'contractor' %}DJ #{{ b.dj_profile_id }}
-              {% else %}Usuário #{{ b.contractor_id }}{% endif %}
-            </td>
-            <td>{{ b.event_date | date_br }}</td>
-            <td>{{ b.platform or '—' }}</td>
-            <td>{{ b.offered_value | currency if b.offered_value else '—' }}</td>
-            <td><span class="badge badge-{{ b.status }}">{{ b.status }}</span></td>
-            <td><a href="{{ url_for('bookings.detail', booking_id=b.id) }}" class="btn btn-ghost btn-sm">Ver</a></td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <!-- Cards em vez de tabela para visual mais rico -->
+    <div style="display:flex; flex-direction:column; gap:.75rem;">
+      {% for b in bookings %}
+      <a href="{{ url_for('bookings.detail', booking_id=b.id) }}"
+         style="text-decoration:none;"
+         class="card card-hover"
+         style="display:block;">
+        <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+
+          <!-- Status indicator -->
+          <div style="width:4px; height:56px; border-radius:4px; flex-shrink:0;
+                      background:{% if b.status == 'pending' %}var(--warning)
+                                 {% elif b.status == 'accepted' %}var(--success)
+                                 {% elif b.status == 'declined' %}var(--danger)
+                                 {% elif b.status == 'cancelled' %}var(--muted)
+                                 {% else %}var(--accent){% endif %};"></div>
+
+          <!-- Info principal -->
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:500; color:var(--text); margin-bottom:.2rem;
+                        white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              {{ b.event_name }}
+            </div>
+            <div style="font-size:.8rem; color:var(--muted); display:flex; gap:1rem; flex-wrap:wrap;">
+              <span>📅 {{ b.event_date | date_br }}</span>
+              <span>🕐 {{ b.event_time }}</span>
+              <span>⏱ {{ b.duration_minutes | duracao }}</span>
+              {% if b.platform %}<span>🎮 {{ b.platform }}</span>{% endif %}
+            </div>
+          </div>
+
+          <!-- Perspectiva -->
+          <div style="text-align:center; flex-shrink:0;">
+            {% if current_user.is_dj and b.contractor_id == current_user.id %}
+              <div style="font-size:.7rem; color:var(--muted);">Você contratou</div>
+              <div style="font-size:.8rem; color:var(--text);">{{ b.dj_name or ('DJ #' ~ b.dj_profile_id) }}</div>
+            {% elif current_user.is_dj %}
+              <div style="font-size:.7rem; color:var(--muted);">Contratante</div>
+              <div style="font-size:.8rem; color:var(--text);">{{ b.contractor_name or ('Usuário #' ~ b.contractor_id) }}</div>
+            {% else %}
+              <div style="font-size:.7rem; color:var(--muted);">DJ</div>
+              <div style="font-size:.8rem; color:var(--text);">{{ b.dj_name or ('DJ #' ~ b.dj_profile_id) }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Valor -->
+          {% if b.offered_value %}
+          <div style="text-align:right; flex-shrink:0;">
+            <div style="font-size:.7rem; color:var(--muted);">Valor</div>
+            <div style="font-weight:500; color:var(--accent); font-size:.9rem;">
+              {{ b.offered_value | currency }}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Status badge -->
+          <div style="flex-shrink:0;">
+            <span class="badge badge-{{ b.status }}">
+              {{ {'pending':'⏳ Pendente','accepted':'✅ Aceito','declined':'❌ Recusado',
+                  'cancelled':'🚫 Cancelado','completed':'✓ Concluído'}.get(b.status, b.status) }}
+            </span>
+          </div>
+
+          <span style="color:var(--muted); font-size:.9rem; flex-shrink:0;">›</span>
+        </div>
+      </a>
+      {% endfor %}
     </div>
+
   {% else %}
     <div class="empty">
       <div class="empty-icon">📋</div>
       <h3>Nenhum booking encontrado</h3>
-      <p>{% if current_user.role == 'contractor' %}<a href="{{ url_for('djs.list_djs') }}">Explore os DJs disponíveis</a>{% else %}Aguarde propostas de contratantes.{% endif %}</p>
+      <p>
+        {% if current_user.is_dj %}
+          Nenhuma proposta com esse filtro.
+        {% else %}
+          <a href="{{ url_for('djs.list_djs') }}">Explore os DJs disponíveis</a> para fazer sua primeira contratação.
+        {% endif %}
+      </p>
     </div>
   {% endif %}
 </div>

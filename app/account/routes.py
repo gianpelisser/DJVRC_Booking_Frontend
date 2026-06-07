@@ -73,3 +73,23 @@ def activate_dj():
         flash(msg, "danger")
 
     return redirect(url_for("account.dashboard"))
+
+
+@account_bp.post("/notifications")
+@login_required
+def update_notifications():
+    """Atualiza preferências de notificação Discord do perfil DJ."""
+    form = request.form
+    payload = {
+        "notify_dm":      form.get("notify_dm") == "on",
+        "notify_webhook": form.get("notify_webhook") == "on",
+        "webhook_url":    form.get("webhook_url", "").strip() or None,
+    }
+    from app.core.api import api_put
+    data, status = api_put("/djs/me", payload)
+    if status == 200 and data and data.get("success"):
+        flash("Preferências de notificação salvas!", "success")
+    else:
+        msg = data.get("message", "Erro ao salvar.") if data else "Erro de conexão."
+        flash(msg, "danger")
+    return redirect(url_for("account.dashboard"))
