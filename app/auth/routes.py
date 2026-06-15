@@ -203,6 +203,42 @@ def discord_callback():
     return redirect(url_for("auth.login"))
 
 
+# --- Contato ---
+
+@auth_bp.get("/contact")
+def contact():
+    return render_template("auth/contact.html")
+
+
+@auth_bp.post("/contact")
+def contact_post():
+    form    = request.form
+    nome    = form.get("name", "").strip()
+    email   = form.get("email", "").strip()
+    assunto = form.get("subject", "").strip()
+    msg     = form.get("message", "").strip()
+
+    if not nome or not email or not assunto or not msg:
+        flash("Por favor preencha todos os campos.", "danger")
+        return render_template("auth/contact.html",
+                               prefill={"name": nome, "email": email,
+                                        "subject": assunto, "message": msg})
+
+    data, status = api_post("/auth/contact",
+                            {"name": nome, "email": email,
+                             "subject": assunto, "message": msg})
+
+    if status == 200 and data and data.get("success"):
+        flash("Mensagem enviada! Responderemos em breve no seu e-mail.", "success")
+        return redirect(url_for("auth.contact"))
+
+    msg_err = data.get("message", "Erro ao enviar.") if data else "Erro de conexão."
+    flash(msg_err, "danger")
+    return render_template("auth/contact.html",
+                           prefill={"name": nome, "email": email,
+                                    "subject": assunto, "message": msg})
+
+
 # --- Helpers ---
 
 def _save_session(data: dict) -> None:

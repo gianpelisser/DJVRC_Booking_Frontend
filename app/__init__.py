@@ -25,6 +25,21 @@ def create_app(config_name: str = "development") -> Flask:
     from .core.context import register_context
     register_context(app)
 
+    # Atalhos sem prefixo /auth para links enviados por email
+    from .auth.routes import verify_email, reset_password, reset_password_post
+
+    @app.get("/verify-email/<token>")
+    def verify_email_shortcut(token):
+        return verify_email(token)
+
+    @app.get("/reset-password/<token>")
+    def reset_password_shortcut(token):
+        return reset_password(token)
+
+    @app.post("/reset-password/<token>")
+    def reset_password_post_shortcut(token):
+        return reset_password_post(token)
+
     # Rota raiz
     from flask import render_template
     @app.route("/")
