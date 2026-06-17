@@ -45,6 +45,20 @@
           {% if current_user.is_dj %}
             <span class="badge badge-dj" style="font-size:.65rem;">DJ</span>
           {% endif %}
+          <a href="{{ url_for('notifications.list_notifications') }}"
+             class="btn btn-ghost btn-sm" style="position:relative; padding:.4rem .55rem;"
+             title="Notificações">
+            🔔
+            {% if unread_notif_count and unread_notif_count > 0 %}
+              <span style="position:absolute; top:-4px; right:-4px;
+                           background:var(--danger); color:#fff; font-size:.6rem;
+                           width:16px; height:16px; border-radius:50%;
+                           display:flex; align-items:center; justify-content:center;
+                           font-weight:700; line-height:1;">
+                {{ unread_notif_count if unread_notif_count < 10 else '9+' }}
+              </span>
+            {% endif %}
+          </a>
           <a href="{{ url_for('account.dashboard') }}"
              class="btn btn-ghost btn-sm {% if request.blueprint == 'account' %}active{% endif %}">
             Minha Conta

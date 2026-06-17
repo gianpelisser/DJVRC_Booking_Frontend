@@ -5,10 +5,20 @@ def register_context(app):
 
     @app.context_processor
     def inject_user():
-        """Injeta o usuário logado em todos os templates."""
+        """Injeta o usuário logado e contagem de notificações em todos os templates."""
+        unread_count = 0
+        if session.get("access_token"):
+            try:
+                from app.core.api import api_get
+                data = api_get("/notifications/", params={"per_page": 1})
+                if data and data.get("success"):
+                    unread_count = data.get("data", {}).get("unread_count", 0)
+            except Exception:
+                pass
         return {
-            "current_user": session.get("user"),
-            "is_logged_in": bool(session.get("access_token")),
+            "current_user":      session.get("user"),
+            "is_logged_in":      bool(session.get("access_token")),
+            "unread_notif_count": unread_count,
         }
 
     @app.template_filter("currency")
