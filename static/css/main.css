@@ -288,9 +288,11 @@ tbody tr:last-child td { border-bottom: none; }
   .detail-grid { grid-template-columns: 1fr; }
   .form-row { grid-template-columns: 1fr; }
 }
-.footer-grid { grid-template-columns: 1fr !important; }
-@media (min-width: 640px) {
-  .footer-grid { grid-template-columns: 2fr 1fr 1fr; }
+@media (max-width: 640px) {
+  .footer-grid { grid-template-columns: 1fr 1fr !important; }
+}
+@media (max-width: 480px) {
+  .footer-grid { grid-template-columns: 1fr !important; }
 }
 @media (max-width: 640px) {
   .nav-links { display: none; }

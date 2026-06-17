@@ -110,66 +110,75 @@ document.querySelectorAll('.nav-links a').forEach(a => {
 });
 </script>
 {% block scripts %}{% endblock %}
-  <footer style="background:var(--bg2); border-top:1px solid var(--border);
-                 padding:2.5rem 0 1.5rem; margin-top:auto;">
+  <!-- Footer -->
+  <footer style="background:var(--bg2); border-top:1px solid var(--border); padding:3rem 0 1.5rem; margin-top:auto;">
     <div class="container">
-      <div style="display:grid; grid-template-columns:2fr 1fr 1fr; gap:2rem;
-                  margin-bottom:2rem; flex-wrap:wrap;"
-           class="footer-grid">
+      <div style="display:grid; grid-template-columns:1.5fr 1fr 1fr 1fr; gap:2rem;
+                  margin-bottom:2.5rem;" class="footer-grid">
 
-        <!-- Marca -->
+        <!-- Logo -->
         <div>
-          <div style="font-family:var(--font-d); font-size:1.1rem; font-weight:900;
-                      color:var(--accent); letter-spacing:3px; margin-bottom:.75rem;">
-            ⬡ DJ VRC BOOKING
+          <div style="font-family:var(--font-d); font-size:1.2rem; font-weight:900;
+                      color:var(--accent); letter-spacing:3px; margin-bottom:1rem;">
+            ⬡ DJ<span style="color:var(--text);">VRC</span> BOOKING
           </div>
-          <p style="font-size:.85rem; color:var(--muted); line-height:1.7; max-width:280px;">
+          <p style="font-size:.85rem; color:var(--muted); line-height:1.8; max-width:260px; margin-bottom:1rem;">
             Plataforma de contratação de DJs para eventos virtuais no VRChat.
             Conectando artistas e organizadores desde 2026.
           </p>
-          <div style="display:flex; gap:.75rem; margin-top:1rem;">
-            <a href="mailto:support@djvrcbooking.com"
-               style="font-size:.8rem; color:var(--muted); text-decoration:none;">
-              ✉ support@djvrcbooking.com
-            </a>
+          <a href="mailto:support@djvrcbooking.com"
+             style="font-size:.8rem; color:var(--muted); text-decoration:none; display:block;">
+            ✉ support@djvrcbooking.com
+          </a>
+        </div>
+
+        <!-- Navegação -->
+        <div>
+          <h6 style="font-size:.7rem; color:var(--text); letter-spacing:.12em;
+                     text-transform:uppercase; margin-bottom:.85rem; font-weight:600;">
+            Navegação
+          </h6>
+          <div style="display:flex; flex-direction:column; gap:.5rem;">
+            <a href="{{ url_for('index') }}" style="font-size:.85rem; color:var(--muted); text-decoration:none;">Início</a>
+            <a href="{{ url_for('djs.list_djs') }}" style="font-size:.85rem; color:var(--muted); text-decoration:none;">Explorar DJs</a>
+            <a href="{{ url_for('auth.contact') }}" style="font-size:.85rem; color:var(--muted); text-decoration:none;">Contato</a>
+            {% if is_logged_in %}
+              <a href="{{ url_for('account.dashboard') }}" style="font-size:.85rem; color:var(--muted); text-decoration:none;">Minha Conta</a>
+              <a href="{{ url_for('bookings.list_bookings') }}" style="font-size:.85rem; color:var(--muted); text-decoration:none;">Meus Bookings</a>
+            {% else %}
+              <a href="{{ url_for('auth.login') }}" style="font-size:.85rem; color:var(--muted); text-decoration:none;">Entrar</a>
+              <a href="{{ url_for('auth.register') }}" style="font-size:.85rem; color:var(--muted); text-decoration:none;">Criar conta</a>
+            {% endif %}
           </div>
         </div>
 
-        <!-- Links -->
+        <!-- Comunidade -->
         <div>
-          <div style="font-size:.7rem; color:var(--muted); letter-spacing:.1em;
-                      text-transform:uppercase; margin-bottom:.75rem; font-weight:500;">
-            Plataforma
-          </div>
-          <div style="display:flex; flex-direction:column; gap:.4rem;">
-            <a href="{{ url_for('djs.list_djs') }}"
-               style="font-size:.875rem; color:var(--muted); text-decoration:none;">Explorar DJs</a>
+          <h6 style="font-size:.7rem; color:var(--text); letter-spacing:.12em;
+                     text-transform:uppercase; margin-bottom:.85rem; font-weight:600;">
+            Comunidade
+          </h6>
+          <div style="display:flex; flex-direction:column; gap:.5rem;">
+            <a href="https://discord.gg/7jWV989YsK" target="_blank" rel="noopener"
+               style="font-size:.85rem; color:var(--muted); text-decoration:none;">Discord</a>
+            <a href="https://vrchat.com" target="_blank" rel="noopener"
+               style="font-size:.85rem; color:var(--muted); text-decoration:none;">VRChat</a>
             <a href="{{ url_for('auth.contact') }}"
-               style="font-size:.875rem; color:var(--muted); text-decoration:none;">Contato</a>
-            {% if not is_logged_in %}
-              <a href="{{ url_for('auth.register') }}"
-                 style="font-size:.875rem; color:var(--muted); text-decoration:none;">Criar conta</a>
-              <a href="{{ url_for('auth.login') }}"
-                 style="font-size:.875rem; color:var(--muted); text-decoration:none;">Entrar</a>
-            {% endif %}
+               style="font-size:.85rem; color:var(--muted); text-decoration:none;">Suporte</a>
           </div>
         </div>
 
         <!-- Legal -->
         <div>
-          <div style="font-size:.7rem; color:var(--muted); letter-spacing:.1em;
-                      text-transform:uppercase; margin-bottom:.75rem; font-weight:500;">
+          <h6 style="font-size:.7rem; color:var(--text); letter-spacing:.12em;
+                     text-transform:uppercase; margin-bottom:.85rem; font-weight:600;">
             Legal
-          </div>
-          <div style="display:flex; flex-direction:column; gap:.4rem;">
-            <a href="{{ url_for('auth.privacy') }}"
-               style="font-size:.875rem; color:var(--muted); text-decoration:none;">
-              Política de Privacidade
-            </a>
+          </h6>
+          <div style="display:flex; flex-direction:column; gap:.5rem;">
             <a href="{{ url_for('auth.terms') }}"
-               style="font-size:.875rem; color:var(--muted); text-decoration:none;">
-              Termos de Uso
-            </a>
+               style="font-size:.85rem; color:var(--muted); text-decoration:none;">Termos de Uso</a>
+            <a href="{{ url_for('auth.privacy') }}"
+               style="font-size:.85rem; color:var(--muted); text-decoration:none;">Política de Privacidade</a>
           </div>
         </div>
       </div>
@@ -179,10 +188,10 @@ document.querySelectorAll('.nav-links a').forEach(a => {
                   display:flex; align-items:center; justify-content:space-between;
                   flex-wrap:wrap; gap:.5rem;">
         <p style="font-size:.78rem; color:var(--muted); margin:0;">
-          © 2026 DJ VRC Booking. Todos os direitos reservados.
+          Todos os direitos reservados. Copyright © 2026 DJ VRC Booking
         </p>
         <p style="font-size:.78rem; color:var(--muted); margin:0;">
-          Feito para a comunidade VRChat 🎧
+          🎧 Feito para a comunidade VRChat
         </p>
       </div>
     </div>
