@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Notificações — DJ VRC Booking{% endblock %}
+{% block content %}
+<div class="container" style="max-width:760px; padding-top:2rem; padding-bottom:4rem;">
+
+  <!-- Header -->
+  <div style="display:flex; align-items:center; justify-content:space-between;
+              gap:1rem; margin-bottom:2rem; flex-wrap:wrap;">
+    <div>
+      <h1 style="font-size:clamp(1.5rem,4vw,2rem); margin-bottom:.2rem;">
+        NOTIFICAÇÕES
+        {% if unread_count > 0 %}
+          <span style="display:inline-flex; align-items:center; justify-content:center;
+                       width:24px; height:24px; border-radius:50%; font-size:.75rem;
+                       background:var(--danger); color:#fff; font-weight:700;
+                       vertical-align:middle; margin-left:.4rem;">
+            {{ unread_count if unread_count < 100 else '99+' }}
+          </span>
+        {% endif %}
+      </h1>
+    </div>
+    <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+      {% if notifications %}
+        <form method="post" action="{{ url_for('notifications.read_all') }}">
+          <button class="btn btn-ghost btn-sm">✓ Marcar todas lidas</button>
+        </form>
+        <form method="post" action="{{ url_for('notifications.delete_all') }}"
+              onsubmit="return confirm('Apagar todas as notificações?')">
+          <button class="btn btn-danger btn-sm">🗑 Apagar todas</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div style="display:flex; gap:.5rem; margin-bottom:1.5rem;">
+    <a href="{{ url_for('notifications.list_notifications') }}"
+       class="page-btn {% if not filter_unread %}active{% endif %}">Todas</a>
+    <a href="{{ url_for('notifications.list_notifications', unread='1') }}"
+       class="page-btn {% if filter_unread %}active{% endif %}">
+      Não lidas {% if unread_count %}<span style="color:var(--danger);">({{ unread_count }})</span>{% endif %}
+    </a>
+  </div>
+
+  {% if notifications %}
+    <div style="display:flex; flex-direction:column; gap:.5rem;">
+      {% for n in notifications %}
+      {% set ICONS = {
+        'new_proposal': '📬',
+        'accepted':     '✅',
+        'declined':     '❌',
+        'cancelled':    '🚫',
+        'completed':    '🎉',
+        'system':       '⚙',
+        'reminder':     '⏰',
+      } %}
+      <div style="display:flex; gap:1rem; padding:1rem 1.25rem;
+                  background:{{ 'rgba(0,229,255,.04)' if not n.is_read else 'var(--bg2)' }};
+                  border:1px solid {{ 'rgba(0,229,255,.2)' if not n.is_read else 'var(--border)' }};
+                  border-radius:var(--radius-sm); align-items:flex-start; transition:all .2s;">
+
+        <!-- Ícone -->
+        <div style="font-size:1.4rem; flex-shrink:0; margin-top:.1rem;">
+          {{ ICONS.get(n.type, '🔔') }}
+        </div>
+
+        <!-- Conteúdo -->
+        <div style="flex:1; min-width:0;">
+          <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.2rem;">
+            <strong style="color:{{ 'var(--text)' if not n.is_read else 'var(--muted)' }};
+                           font-size:.9rem;">
+              {{ n.title }}
+            </strong>
+            {% if not n.is_read %}
+              <span style="width:8px; height:8px; border-radius:50%;
+                           background:var(--accent); flex-shrink:0;"></span>
+            {% endif %}
+          </div>
+          {% if n.body %}
+            <p style="font-size:.85rem; color:var(--muted); margin-bottom:.35rem;
+                      line-height:1.5;">{{ n.body }}</p>
+          {% endif %}
+          <div style="font-size:.75rem; color:var(--muted);">
+            {{ n.created_at[:16] | replace('T', ' ') if n.created_at else '' }}
+            {% if n.resource_type and n.resource_id %}
+              · <a href="{{ url_for(n.resource_type + 's.detail', **{n.resource_type + '_id': n.resource_id}) }}"
+                   style="color:var(--accent); text-decoration:none;">
+                  Ver {{ n.resource_type }} →
+                </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Ações -->
+        <div style="display:flex; gap:.35rem; flex-shrink:0;">
+          {% if n.is_read %}
+            <form method="post"
+                  action="{{ url_for('notifications.mark_unread', notif_id=n.id) }}">
+              <button class="btn btn-ghost btn-sm" title="Marcar como não lida"
+                      style="padding:.3rem .5rem; font-size:.7rem;">↩</button>
+            </form>
+          {% else %}
+            <form method="post"
+                  action="{{ url_for('notifications.mark_read', notif_id=n.id) }}">
+              <button class="btn btn-ghost btn-sm" title="Marcar como lida"
+                      style="padding:.3rem .5rem; font-size:.7rem;">✓</button>
+            </form>
+          {% endif %}
+          <form method="post"
+                action="{{ url_for('notifications.delete_notification', notif_id=n.id) }}">
+            <button class="btn btn-ghost btn-sm" title="Apagar"
+                    style="padding:.3rem .5rem; font-size:.7rem; color:var(--danger);">✕</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Paginação -->
+    {% if pagination.pages > 1 %}
+      <div style="display:flex; justify-content:center; gap:.5rem; margin-top:2rem;">
+        {% for p in range(1, pagination.pages + 1) %}
+          <a href="?page={{ p }}{% if filter_unread %}&unread=1{% endif %}"
+             class="page-btn {% if p == pagination.page %}active{% endif %}">{{ p }}</a>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+  {% else %}
+    <div class="empty">
+      <div class="empty-icon">🔔</div>
+      <h3>Nenhuma notificação</h3>
+      <p>{% if filter_unread %}Você não tem notificações não lidas.{% else %}Tudo limpo por aqui!{% endif %}</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

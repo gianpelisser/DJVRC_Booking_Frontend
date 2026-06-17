@@ -293,6 +293,18 @@ def contact_post():
                                     "subject": assunto, "message": msg})
 
 
+# --- Legal pages ---
+
+@auth_bp.get("/privacy")
+def privacy():
+    return render_template("legal/privacy.html")
+
+
+@auth_bp.get("/terms")
+def terms():
+    return render_template("legal/terms.html")
+
+
 # --- Register Config Helper ---
 
 def _get_register_config():

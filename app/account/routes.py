@@ -78,18 +78,82 @@ def activate_dj():
 @account_bp.post("/notifications")
 @login_required
 def update_notifications():
-    """Atualiza preferências de notificação Discord do perfil DJ."""
+    """Atualiza preferências de notificação — usuário comum e/ou perfil DJ."""
     form = request.form
-    payload = {
-        "notify_dm":      form.get("notify_dm") == "on",
-        "notify_webhook": form.get("notify_webhook") == "on",
-        "webhook_url":    form.get("webhook_url", "").strip() or None,
+    user = session.get("user", {})
+
+    # Preferências do usuário comum (Discord DM/webhook da conta)
+    user_payload = {
+        "notify_discord_dm":      form.get("notify_discord_dm") == "on",
+        "notify_discord_webhook": form.get("notify_discord_webhook") == "on",
+        "webhook_url":            form.get("webhook_url", "").strip() or None,
     }
-    from app.core.api import api_put
-    data, status = api_put("/djs/me", payload)
+    data, status = api_put("/auth/notifications", user_payload)
     if status == 200 and data and data.get("success"):
-        flash("Preferências de notificação salvas!", "success")
+        session["user"] = data["data"]
+
+    # Se for DJ, atualiza também as preferências do perfil DJ
+    if user.get("is_dj"):
+        dj_payload = {
+            "notify_dm":      form.get("notify_dm") == "on",
+            "notify_webhook": form.get("notify_webhook") == "on",
+            "webhook_url":    form.get("dj_webhook_url", "").strip() or None,
+        }
+        api_put("/djs/me", dj_payload)
+
+    flash("Preferências de notificação salvas!", "success")
+    return redirect(url_for("account.dashboard"))
+
+@account_bp.post("/link/discord/manual")
+@login_required
+def link_discord_manual():
+    from app.core.api import api_post
+    form = request.form
+    data, status = api_post("/auth/link/discord/manual", {
+        "discord_id":       form.get("discord_id", "").strip(),
+        "discord_username": form.get("discord_username", "").strip(),
+    })
+    if status == 200 and data and data.get("success"):
+        session["user"] = data["data"]
+        flash("Discord vinculado com sucesso!", "success")
     else:
-        msg = data.get("message", "Erro ao salvar.") if data else "Erro de conexão."
+        msg = data.get("message", "Erro ao vincular.") if data else "Erro de conexão."
+        flash(msg, "danger")
+    return redirect(url_for("account.dashboard"))
+
+
+@account_bp.post("/unlink/discord")
+@login_required
+def unlink_discord():
+    from app.core.api import api_post
+    data, status = api_post("/auth/unlink/discord")
+    if status == 200 and data and data.get("success"):
+        u = session.get("user", {})
+        u.pop("discord_id", None)
+        u.pop("discord_username", None)
+        u.pop("discord_display_name", None)
+        u.pop("discord_avatar", None)
+        session["user"] = u
+        flash("Discord desvinculado.", "success")
+    else:
+        msg = data.get("message", "Erro.") if data else "Erro de conexão."
+        flash(msg, "danger")
+    return redirect(url_for("account.dashboard"))
+
+
+@account_bp.post("/unlink/google")
+@login_required
+def unlink_google():
+    from app.core.api import api_post
+    data, status = api_post("/auth/unlink/google")
+    if status == 200 and data and data.get("success"):
+        u = session.get("user", {})
+        u.pop("google_id", None)
+        u.pop("google_name", None)
+        u.pop("google_avatar", None)
+        session["user"] = u
+        flash("Google desvinculado.", "success")
+    else:
+        msg = data.get("message", "Erro.") if data else "Erro de conexão."
         flash(msg, "danger")
     return redirect(url_for("account.dashboard"))
