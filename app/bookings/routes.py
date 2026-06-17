@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from app.core.api import api_get, api_post
+from app.core.api import api_get, api_post, api_delete
 from app.core.decorators import login_required
 
 bookings_bp = Blueprint("bookings", __name__)
@@ -54,12 +54,19 @@ def new_booking(dj_id):
 @login_required
 def new_booking_post(dj_id):
     form = request.form
+    # Calcula duração total em minutos (horas + minutos extras)
+    dur_h = int(form.get("duration_hours", 0) or 0)
+    dur_m = int(form.get("duration_minutes_extra", 0) or 0)
+    dur_total = dur_h * 60 + dur_m
+    if dur_total <= 0:
+        dur_total = int(form.get("duration_minutes", 60) or 60)  # fallback
+
     payload = {
         "dj_profile_id": dj_id,
         "event_name": form.get("event_name"),
         "event_date": form.get("event_date"),
         "event_time": form.get("event_time"),
-        "duration_minutes": int(form.get("duration_minutes", 60) or 60),
+        "duration_minutes": dur_total,
         "platform": form.get("platform"),
         "offered_value": form.get("offered_value") or None,
         "currency": form.get("currency", "USD"),
@@ -112,4 +119,22 @@ def cancel(booking_id):
     else:
         msg = data.get("message", "Erro ao cancelar.") if data else "Erro de conexão."
         flash(msg, "danger")
+    return redirect(url_for("bookings.list_bookings"))
+
+
+@bookings_bp.post("/<int:booking_id>/delete")
+@login_required
+def delete_booking(booking_id):
+    import requests as req
+    from flask import current_app, session
+    from app.core.api import _headers, _url
+    try:
+        resp = req.delete(_url(f"/bookings/{booking_id}"), headers=_headers(), timeout=10)
+        data = resp.json()
+        if resp.status_code == 200 and data.get("success"):
+            flash("Booking apagado.", "success")
+        else:
+            flash(data.get("message", "Erro ao apagar."), "danger")
+    except Exception as e:
+        flash("Erro de conexão.", "danger")
     return redirect(url_for("bookings.list_bookings"))

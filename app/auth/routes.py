@@ -9,7 +9,7 @@ auth_bp = Blueprint("auth", __name__)
 def login():
     if session.get("access_token"):
         return redirect(url_for("index"))
-    return render_template("auth/login.html")
+    return render_template("auth/login.html", register_config=_get_register_config())
 
 
 @auth_bp.post("/login")
@@ -26,7 +26,7 @@ def login_post():
 
     msg = data.get("message", "Erro ao fazer login.") if data else "Erro de conexão com a API."
     flash(msg, "danger")
-    return render_template("auth/login.html", email=email)
+    return render_template("auth/login.html", email=email, register_config=_get_register_config())
 
 
 @auth_bp.get("/register")
@@ -39,11 +39,13 @@ def register():
         "discord_username":     request.args.get("discord_username", ""),
         "discord_display_name": request.args.get("discord_display_name", ""),
         "discord_avatar":       request.args.get("discord_avatar", ""),
+        "google_id":            request.args.get("google_id", ""),
+        "google_name":          request.args.get("google_name", ""),
+        "google_avatar":        request.args.get("google_avatar", ""),
         "email":                request.args.get("email", ""),
         "username":             request.args.get("username", ""),
     }
-    via_discord = bool(prefill["discord_id"])
-    return render_template("auth/register.html", prefill=prefill, via_discord=via_discord)
+    return render_template("auth/register.html", prefill=prefill, register_config=_get_register_config())
 
 
 @auth_bp.post("/register")
@@ -59,6 +61,9 @@ def register_post():
     discord_username     = form.get("discord_username", "").strip()
     discord_display_name = form.get("discord_display_name", "").strip()
     discord_avatar       = form.get("discord_avatar", "").strip()
+    google_id     = form.get("google_id", "").strip()
+    google_name   = form.get("google_name", "").strip()
+    google_avatar = form.get("google_avatar", "").strip()
 
     payload = {
         "username":         username,
@@ -68,6 +73,9 @@ def register_post():
         "discord_username":     discord_username or None,
         "discord_display_name": discord_display_name or None,
         "discord_avatar":       discord_avatar or None,
+        "google_id":     google_id or None,
+        "google_name":   google_name or None,
+        "google_avatar": google_avatar or None,
     }
     if not discord_id:
         payload["password"] = password
@@ -75,16 +83,17 @@ def register_post():
     data, status = api_post("/auth/register", payload)
 
     if status == 201 and data and data.get("success"):
-        # Se veio pelo Discord, a API ja retorna tokens — loga direto
-        if discord_id and data["data"].get("access_token"):
+        # OAuth (Discord ou Google) — já vem verificado, loga direto
+        if data["data"].get("access_token"):
             _save_session(data["data"])
             flash("Conta criada! Bem-vindo ao DJ VRC Booking!", "success")
             return redirect(url_for("index"))
 
+        # Cadastro por email — precisa verificar
         flash("Cadastro realizado! Verifique seu e-mail para ativar a conta.", "success")
         return redirect(url_for("auth.login"))
 
-    msg = data.get("message", "Erro ao cadastrar.") if data else "Erro de conexão com a API."
+    msg = data.get("message", "Erro ao cadastrar.") if data else "Erro de conexao com a API."
     flash(msg, "danger")
     prefill = {
         "discord_id":       discord_id,
@@ -95,8 +104,7 @@ def register_post():
     }
     return render_template("auth/register.html",
         prefill=prefill,
-        via_discord=bool(discord_id),
-        is_dj=is_dj,
+        register_config=_get_register_config(),
     )
 
 
@@ -201,6 +209,111 @@ def discord_callback():
 
     flash("Resposta inesperada da API.", "danger")
     return redirect(url_for("auth.login"))
+
+
+# --- Google OAuth ---
+
+@auth_bp.get("/google")
+def google_login():
+    data = api_get("/auth/google")
+    if not data or not data.get("success"):
+        flash("Login com Google não disponível.", "danger")
+        return redirect(url_for("auth.login"))
+    return redirect(data["data"]["redirect_url"])
+
+
+@auth_bp.get("/google/callback")
+def google_callback():
+    from urllib.parse import urlencode
+    code  = request.args.get("code", "")
+    error_param = request.args.get("error")
+    if error_param:
+        flash("Autorização cancelada.", "warning")
+        return redirect(url_for("auth.login"))
+
+    data = api_get(f"/auth/google/callback?code={code}")
+    if not data or not data.get("success"):
+        flash("Falha ao autenticar com Google.", "danger")
+        return redirect(url_for("auth.login"))
+
+    d      = data["data"]
+    action = d.get("action")
+
+    if action == "login":
+        session["access_token"]  = d["access_token"]
+        session["refresh_token"] = d["refresh_token"]
+        session["user"]          = d["user"]
+        flash(f"Bem-vindo, {d['user']['username']}!", "success")
+        return redirect(url_for("account.dashboard"))
+
+    # action == "register"
+    params = urlencode({
+        "google_id":     d.get("google_id", ""),
+        "google_name":   d.get("google_name", ""),
+        "google_avatar": d.get("google_avatar", ""),
+        "email":         d.get("email", ""),
+        "username":      d.get("suggested_username", ""),
+    })
+    return redirect(url_for("auth.register") + "?" + params)
+
+
+# --- Contato ---
+
+@auth_bp.get("/contact")
+def contact():
+    return render_template("auth/contact.html")
+
+
+@auth_bp.post("/contact")
+def contact_post():
+    form    = request.form
+    nome    = form.get("name", "").strip()
+    email   = form.get("email", "").strip()
+    assunto = form.get("subject", "").strip()
+    msg     = form.get("message", "").strip()
+
+    if not nome or not email or not assunto or not msg:
+        flash("Por favor preencha todos os campos.", "danger")
+        return render_template("auth/contact.html",
+                               prefill={"name": nome, "email": email,
+                                        "subject": assunto, "message": msg})
+
+    data, status = api_post("/auth/contact",
+                            {"name": nome, "email": email,
+                             "subject": assunto, "message": msg})
+
+    if status == 200 and data and data.get("success"):
+        flash("Mensagem enviada! Responderemos em breve no seu e-mail.", "success")
+        return redirect(url_for("auth.contact"))
+
+    msg_err = data.get("message", "Erro ao enviar.") if data else "Erro de conexão."
+    flash(msg_err, "danger")
+    return render_template("auth/contact.html",
+                           prefill={"name": nome, "email": email,
+                                    "subject": assunto, "message": msg})
+
+
+# --- Legal pages ---
+
+@auth_bp.get("/privacy")
+def privacy():
+    return render_template("legal/privacy.html")
+
+
+@auth_bp.get("/terms")
+def terms():
+    return render_template("legal/terms.html")
+
+
+# --- Register Config Helper ---
+
+def _get_register_config():
+    """Busca na API quais métodos de cadastro estão ativos."""
+    data = api_get("/auth/register-config")
+    if data and data.get("success"):
+        return data.get("data", {})
+    # Fallback: todos ativos
+    return {"email_enabled": True, "discord_enabled": True, "google_enabled": False}
 
 
 # --- Helpers ---

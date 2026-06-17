@@ -65,6 +65,13 @@ def my_profile():
     profile  = data.get("data", {}) if (data and data.get("success")) else {}
     genres   = genres_data.get("data", []) if genres_data else []
     formats  = formats_data.get("data", []) if formats_data else []
+    # Pré-preenche discord_tag com dados do usuário se perfil novo
+    user = session.get("user", {})
+    if not profile.get("social", {}).get("discord") and user.get("discord_username"):
+        if not profile.get("social"):
+            profile["social"] = {}
+        profile["social"]["discord"] = user.get("discord_display_name") or user.get("discord_username")
+
     return render_template("djs/edit_profile.html",
         profile=profile, genres=genres, formats=formats,
     )

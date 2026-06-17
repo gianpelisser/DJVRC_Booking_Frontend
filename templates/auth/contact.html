@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Contato — DJ VRC Booking{% endblock %}
+{% block content %}
+<div class="container" style="max-width:640px; padding-top:3rem; padding-bottom:4rem;">
+
+  <div style="text-align:center; margin-bottom:2.5rem;">
+    <h1 style="font-size:clamp(1.8rem,4vw,2.5rem); margin-bottom:.5rem;">ENTRE EM CONTATO</h1>
+    <p style="color:var(--muted);">
+      Dúvidas, sugestões ou problemas? Manda uma mensagem que respondemos rapidinho.
+    </p>
+    <a href="mailto:support@djvrcbooking.com"
+       style="color:var(--accent); font-size:.9rem; text-decoration:none;">
+      ✉ support@djvrcbooking.com
+    </a>
+  </div>
+
+  <div class="card">
+    <form method="post">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Seu nome *</label>
+          <input class="form-input" type="text" name="name" required
+                 value="{{ prefill.name if prefill else '' }}"
+                 placeholder="Como prefere ser chamado" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Seu e-mail *</label>
+          <input class="form-input" type="email" name="email" required
+                 value="{{ prefill.email if prefill else (current_user.email if current_user else '') }}"
+                 placeholder="para@respondermos.com" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Assunto *</label>
+        <select class="form-select" name="subject">
+          {% set subjects = [
+            'Dúvida geral',
+            'Problema técnico',
+            'Minha conta',
+            'Booking / Contratação',
+            'Perfil de DJ',
+            'Sugestão de melhoria',
+            'Reportar comportamento',
+            'Outro',
+          ] %}
+          {% for s in subjects %}
+            <option value="{{ s }}"
+              {% if prefill and prefill.subject == s %}selected{% endif %}>
+              {{ s }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Mensagem *</label>
+        <textarea class="form-textarea" name="message" rows="6" required
+                  placeholder="Descreva com detalhes o que você precisa...">{{ prefill.message if prefill else '' }}</textarea>
+      </div>
+
+      <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+        <button type="submit" class="btn btn-primary btn-lg">Enviar mensagem</button>
+        <span style="font-size:.8rem; color:var(--muted);">
+          Você receberá uma cópia no seu e-mail.
+        </span>
+      </div>
+    </form>
+  </div>
+
+  <!-- Info adicional -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.5rem;">
+    <div class="card" style="text-align:center; padding:1.25rem;">
+      <div style="font-size:1.5rem; margin-bottom:.35rem;">💬</div>
+      <div style="font-weight:500; color:var(--text); margin-bottom:.25rem;">Discord</div>
+      <div style="font-size:.8rem; color:var(--muted);">
+        Entre no nosso servidor para suporte em tempo real
+      </div>
+    </div>
+    <div class="card" style="text-align:center; padding:1.25rem;">
+      <div style="font-size:1.5rem; margin-bottom:.35rem;">⏱</div>
+      <div style="font-weight:500; color:var(--text); margin-bottom:.25rem;">Resposta</div>
+      <div style="font-size:.8rem; color:var(--muted);">
+        Respondemos em até 48 horas úteis
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

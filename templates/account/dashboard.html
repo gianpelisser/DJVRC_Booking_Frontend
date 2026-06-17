@@ -4,32 +4,40 @@
 <div class="container" style="max-width:780px; padding-top:2rem; padding-bottom:4rem;">
 
   <!-- Header -->
-  <div style="display:flex; align-items:center; gap:1.25rem; margin-bottom:2.5rem;">
+  <div style="display:flex; align-items:center; gap:1.25rem; margin-bottom:2.5rem; flex-wrap:wrap;">
     {% if user.discord_id and user.discord_avatar %}
       <img src="https://cdn.discordapp.com/avatars/{{ user.discord_id }}/{{ user.discord_avatar }}.png"
-           style="width:64px; height:64px; border-radius:50%; border:2px solid var(--border);"
+           style="width:64px; height:64px; border-radius:50%; border:2px solid var(--border); flex-shrink:0;"
+           onerror="this.style.display='none'" />
+    {% elif user.google_avatar %}
+      <img src="{{ user.google_avatar }}"
+           style="width:64px; height:64px; border-radius:50%; border:2px solid var(--border); flex-shrink:0;"
            onerror="this.style.display='none'" />
     {% else %}
-      <div style="width:64px; height:64px; border-radius:50%;
+      <div style="width:64px; height:64px; border-radius:50%; flex-shrink:0;
                   background:linear-gradient(135deg,#00b4d8,#0077b6);
                   display:flex; align-items:center; justify-content:center;
-                  font-family:var(--font-d); font-size:1.5rem; color:#fff; flex-shrink:0;">
+                  font-family:var(--font-d); font-size:1.5rem; color:#fff;">
         {{ user.username[0].upper() }}
       </div>
     {% endif %}
     <div>
-      <h1 style="font-size:clamp(1.5rem,4vw,2.2rem); margin-bottom:.2rem;">{{ user.username }}</h1>
-      <div style="display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;">
+      <h1 style="font-size:clamp(1.3rem,4vw,2rem); margin-bottom:.25rem;">{{ user.username }}</h1>
+      <div style="display:flex; gap:.5rem; flex-wrap:wrap; align-items:center;">
         <span class="badge badge-contractor">Usuário</span>
         {% if user.is_dj %}<span class="badge badge-dj">DJ</span>{% endif %}
         {% if user.discord_username %}
           <span style="font-size:.8rem; color:var(--muted);">
-            Discord:
+            <span style="color:#5865F2;">⬡</span>
+            {{ user.discord_display_name or user.discord_username }}
             {% if user.discord_display_name and user.discord_display_name != user.discord_username %}
-              {{ user.discord_display_name }} (@{{ user.discord_username }})
-            {% else %}
-              @{{ user.discord_username }}
+              <span style="color:var(--muted); font-size:.75rem;">(@{{ user.discord_username }})</span>
             {% endif %}
+          </span>
+        {% endif %}
+        {% if user.google_name %}
+          <span style="font-size:.8rem; color:var(--muted);">
+            <span style="color:#4285F4;">G</span> {{ user.google_name }}
           </span>
         {% endif %}
       </div>
@@ -38,11 +46,11 @@
 
   <!-- Dados da conta -->
   <div class="card mb-3">
-    <div class="card-title" style="margin-bottom:1.25rem;">Dados da conta</div>
+    <div class="card-title mb-2">Dados da conta</div>
     <form method="post" action="{{ url_for('account.update') }}">
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Username</label>
+          <label class="form-label">Nome de usuário</label>
           <input class="form-input" type="text" name="username" value="{{ user.username }}" />
         </div>
         <div class="form-group">
@@ -61,70 +69,216 @@
     </form>
   </div>
 
+  <!-- Contas vinculadas -->
+  <div class="card mb-3">
+    <div class="card-title mb-2">Contas vinculadas</div>
+
+    {# Discord #}
+    <div style="display:flex; align-items:center; justify-content:space-between;
+                gap:1rem; padding:.85rem 0; border-bottom:1px solid var(--border); flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:.75rem;">
+        <div style="width:36px; height:36px; border-radius:50%; flex-shrink:0;
+                    background:#5865F2; display:flex; align-items:center; justify-content:center;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
+          </svg>
+        </div>
+        <div>
+          <div style="font-weight:500; font-size:.9rem;">Discord</div>
+          {% if user.discord_id %}
+            <div style="font-size:.78rem; color:var(--muted);">
+              {{ user.discord_display_name or user.discord_username or user.discord_id }}
+            </div>
+          {% else %}
+            <div style="font-size:.78rem; color:var(--muted);">Não vinculado</div>
+          {% endif %}
+        </div>
+      </div>
+      <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+        {% if user.discord_id %}
+          <form method="post" action="{{ url_for('account.unlink_discord') }}">
+            <button class="btn btn-ghost btn-sm" style="color:var(--danger);">Desvincular</button>
+          </form>
+        {% else %}
+          <a href="{{ url_for('auth.discord_login') }}?next={{ url_for('account.dashboard') }}"
+             class="btn btn-outline btn-sm" style="border-color:#5865F2; color:#5865F2;">
+            Vincular Discord
+          </a>
+          <button class="btn btn-ghost btn-sm" onclick="toggleDiscordManual()">
+            Informar ID manual
+          </button>
+        {% endif %}
+      </div>
+    </div>
+
+    {# Discord manual #}
+    {% if not user.discord_id %}
+    <div id="discordManualForm" style="display:none; padding:.85rem 0;
+         border-bottom:1px solid var(--border);">
+      <form method="post" action="{{ url_for('account.link_discord_manual') }}">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">ID numérico do Discord</label>
+            <input class="form-input" type="text" name="discord_id"
+                   placeholder="Ex: 136933432973459457" />
+            <div class="form-hint">
+              Discord → Configurações → Avançado → Modo desenvolvedor ON →
+              clique direito no seu nome → Copiar ID
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Username do Discord (opcional)</label>
+            <input class="form-input" type="text" name="discord_username"
+                   placeholder="Ex: vortexjogos" />
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm">Salvar Discord ID</button>
+      </form>
+    </div>
+    {% endif %}
+
+    {# Google #}
+    <div style="display:flex; align-items:center; justify-content:space-between;
+                gap:1rem; padding:.85rem 0; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:.75rem;">
+        <div style="width:36px; height:36px; border-radius:50%; flex-shrink:0;
+                    background:#fff; border:1px solid var(--border);
+                    display:flex; align-items:center; justify-content:center;">
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+        </div>
+        <div>
+          <div style="font-weight:500; font-size:.9rem;">Google</div>
+          {% if user.google_id %}
+            <div style="font-size:.78rem; color:var(--muted);">{{ user.google_name }}</div>
+          {% else %}
+            <div style="font-size:.78rem; color:var(--muted);">Não vinculado</div>
+          {% endif %}
+        </div>
+      </div>
+      <div>
+        {% if user.google_id %}
+          <form method="post" action="{{ url_for('account.unlink_google') }}">
+            <button class="btn btn-ghost btn-sm" style="color:var(--danger);">Desvincular</button>
+          </form>
+        {% else %}
+          <a href="{{ url_for('auth.google_login') }}"
+             class="btn btn-outline btn-sm" style="border-color:#4285F4; color:#4285F4;">
+            Vincular Google
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Notificações Discord -->
+  {% if user.discord_id %}
+  <div class="card mb-3">
+    <div class="card-title mb-2">Notificações no Discord</div>
+    <form method="post" action="{{ url_for('account.update_notifications') }}">
+      <div style="display:flex; flex-direction:column; gap:.75rem; margin-bottom:1rem;">
+        <label style="display:flex; align-items:flex-start; gap:.75rem; cursor:pointer;
+                      padding:.85rem 1rem; background:var(--bg3); border-radius:var(--radius-sm);
+                      border:1px solid {{ 'rgba(0,229,255,.25)' if user.notify_discord_dm else 'var(--border)' }};">
+          <input type="checkbox" name="notify_discord_dm"
+                 {% if user.notify_discord_dm %}checked{% endif %}
+                 style="margin-top:.2rem; accent-color:var(--accent);" />
+          <div>
+            <div style="font-weight:500; margin-bottom:.15rem;">Receber DM quando houver atualização de booking</div>
+            <div style="font-size:.8rem; color:var(--muted);">O bot envia mensagem privada no Discord.</div>
+          </div>
+        </label>
+        <label style="display:flex; align-items:flex-start; gap:.75rem; cursor:pointer;
+                      padding:.85rem 1rem; background:var(--bg3); border-radius:var(--radius-sm);
+                      border:1px solid {{ 'rgba(0,229,255,.25)' if user.notify_discord_webhook else 'var(--border)' }};">
+          <input type="checkbox" name="notify_discord_webhook" id="whCb"
+                 {% if user.notify_discord_webhook %}checked{% endif %}
+                 style="margin-top:.2rem; accent-color:var(--accent);"
+                 onchange="document.getElementById('whField').style.display=this.checked?'block':'none'" />
+          <div style="width:100%;">
+            <div style="font-weight:500; margin-bottom:.15rem;">Usar webhook do meu servidor Discord</div>
+            <div style="font-size:.8rem; color:var(--muted);">Posta atualizações num canal do seu servidor.</div>
+            <div id="whField" style="display:{% if user.notify_discord_webhook %}block{% else %}none{% endif %}; margin-top:.75rem;">
+              <input class="form-input" type="url" name="webhook_url"
+                     value="{{ user.webhook_url or '' }}"
+                     placeholder="https://discord.com/api/webhooks/..." />
+            </div>
+          </div>
+        </label>
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm">Salvar preferências</button>
+    </form>
+  </div>
+  {% elif not user.discord_id %}
+  <div class="card mb-3" style="border-color:rgba(88,101,242,.2);">
+    <div style="display:flex; gap:.75rem; align-items:flex-start;">
+      <span style="font-size:1.25rem;">💬</span>
+      <div>
+        <div class="card-title" style="margin-bottom:.25rem;">Receba notificações no Discord</div>
+        <p style="font-size:.85rem; color:var(--muted); margin:0 0 .75rem;">
+          Vincule sua conta Discord para receber DMs quando houver atualizações nos seus bookings.
+        </p>
+        <a href="{{ url_for('auth.discord_login') }}"
+           class="btn btn-sm" style="border:1px solid #5865F2; color:#5865F2;">
+          Vincular Discord agora
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Modo DJ -->
   <div class="card mb-3">
     {% if not user.is_dj %}
-      <!-- Conta ainda não é DJ -->
       <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
         <div>
           <div class="card-title" style="margin-bottom:.35rem;">Modo DJ</div>
           <p style="font-size:.875rem; color:var(--muted); max-width:420px; margin:0;">
             Ative para criar seu perfil de DJ e receber propostas de eventos como artista.
-            Você continua podendo contratar outros DJs normalmente.
           </p>
         </div>
-        <div style="flex-shrink:0;">
-          <form method="post" action="{{ url_for('account.activate_dj') }}">
-            <button type="submit" class="btn btn-outline">Ativar modo DJ</button>
-          </form>
-        </div>
+        <form method="post" action="{{ url_for('account.activate_dj') }}" style="flex-shrink:0;">
+          <button type="submit" class="btn btn-outline">Ativar modo DJ</button>
+        </form>
       </div>
 
     {% elif dj_profile %}
-      <!-- DJ com perfil criado -->
       <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
         <div>
-          <div class="card-title" style="margin-bottom:.35rem;">Perfil DJ</div>
-          <div style="font-size:.8rem;">
-            {% if dj_profile.is_approved %}
-              <span style="color:var(--success);">✓ Aprovado e visível ao público</span>
-            {% else %}
-              <span style="color:var(--warning);">⏳ Aguardando aprovação do admin</span>
-            {% endif %}
-          </div>
+          <div class="card-title" style="margin-bottom:.25rem;">Perfil DJ</div>
+          <div style="font-size:.8rem; color:var(--success);">✓ Ativo e visível ao público</div>
         </div>
         <div style="display:flex; gap:.5rem; flex-shrink:0;">
-          <a href="{{ url_for('djs.my_profile') }}" class="btn btn-primary">Editar perfil DJ</a>
+          <a href="{{ url_for('djs.my_profile') }}" class="btn btn-primary btn-sm">Editar perfil DJ</a>
           <a href="{{ url_for('djs.view_my_public_profile') }}"
              class="btn btn-ghost btn-sm" target="_blank">Ver público →</a>
         </div>
       </div>
-
-      <!-- Preview -->
+      <!-- Preview do perfil -->
       <div style="display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap;
                   background:var(--bg3); border-radius:var(--radius-sm); padding:1rem;">
         <div style="position:relative; width:72px; height:72px; flex-shrink:0;">
           <div style="width:72px; height:72px; border-radius:var(--radius-sm); overflow:hidden;
                       background:linear-gradient(135deg,#001a2e,#003a5c);">
             {% if dj_profile.banner_url %}
-              <img src="{{ dj_profile.banner_url }}"
-                   style="width:100%; height:100%; object-fit:cover;"
+              <img src="{{ dj_profile.banner_url }}" style="width:100%; height:100%; object-fit:cover;"
                    onerror="this.style.display='none'" />
             {% endif %}
           </div>
           {% if dj_profile.avatar_url %}
             <img src="{{ dj_profile.avatar_url }}"
-                 style="position:absolute; bottom:-6px; left:-6px;
-                        width:32px; height:32px; border-radius:50%;
-                        border:2px solid var(--bg3); object-fit:cover;" />
+                 style="position:absolute; bottom:-4px; left:-4px; width:28px; height:28px;
+                        border-radius:50%; border:2px solid var(--bg3); object-fit:cover;" />
           {% endif %}
         </div>
-        <div style="flex:1; min-width:0;">
-          <div style="font-weight:500; color:var(--text); margin-bottom:.35rem;">
-            {{ dj_profile.artist_name }}
-          </div>
-          <div style="display:flex; flex-wrap:wrap; gap:.35rem;">
-            {% for g in dj_profile.genres[:4] %}
+        <div>
+          <div style="font-weight:500; color:var(--text);">{{ dj_profile.artist_name }}</div>
+          <div style="display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.25rem;">
+            {% for g in dj_profile.genres[:3] %}
               <span class="tag tag-cyan">{{ g.name }}</span>
             {% endfor %}
           </div>
@@ -132,17 +286,19 @@
       </div>
 
     {% else %}
-      <!-- DJ sem perfil ainda -->
       <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
         <div>
           <div class="card-title" style="margin-bottom:.35rem;">Perfil DJ</div>
           <p style="font-size:.875rem; color:var(--muted); max-width:420px; margin:0;">
             Modo DJ ativo! Crie seu perfil para aparecer nas buscas e receber propostas.
+            {% if user.discord_id %}
+              Suas informações do Discord já foram carregadas.
+            {% endif %}
           </p>
         </div>
-        <div style="flex-shrink:0;">
-          <a href="{{ url_for('djs.my_profile') }}" class="btn btn-primary">Criar perfil DJ</a>
-        </div>
+        <a href="{{ url_for('djs.my_profile') }}" class="btn btn-primary" style="flex-shrink:0;">
+          Criar perfil DJ
+        </a>
       </div>
     {% endif %}
   </div>
@@ -157,9 +313,18 @@
     <a href="{{ url_for('events.list_events') }}" class="card card-hover" style="text-decoration:none;">
       <div style="font-size:1.5rem; margin-bottom:.5rem;">🎉</div>
       <div class="card-title">Meus Eventos</div>
-      <div class="card-sub">Eventos confirmados e em andamento</div>
+      <div class="card-sub">Eventos confirmados</div>
     </a>
   </div>
 
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleDiscordManual() {
+  const f = document.getElementById('discordManualForm');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+</script>
 {% endblock %}

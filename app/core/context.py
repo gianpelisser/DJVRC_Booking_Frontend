@@ -5,10 +5,20 @@ def register_context(app):
 
     @app.context_processor
     def inject_user():
-        """Injeta o usuário logado em todos os templates."""
+        """Injeta o usuário logado e contagem de notificações em todos os templates."""
+        unread_count = 0
+        if session.get("access_token"):
+            try:
+                from app.core.api import api_get
+                data = api_get("/notifications/", params={"per_page": 1})
+                if data and data.get("success"):
+                    unread_count = data.get("data", {}).get("unread_count", 0)
+            except Exception:
+                pass
         return {
-            "current_user": session.get("user"),
-            "is_logged_in": bool(session.get("access_token")),
+            "current_user":      session.get("user"),
+            "is_logged_in":      bool(session.get("access_token")),
+            "unread_notif_count": unread_count,
         }
 
     @app.template_filter("currency")
@@ -19,6 +29,24 @@ def register_context(app):
             return f"{symbol}{float(value):.2f}"
         except (ValueError, TypeError):
             return value
+
+    @app.template_filter("duracao")
+    def duracao_filter(minutos):
+        """Converte minutos para formato legível: 90 → 1h 30min, 60 → 1 hora, 45 → 45 min"""
+        if not minutos:
+            return "—"
+        try:
+            m = int(minutos)
+        except (ValueError, TypeError):
+            return str(minutos)
+        h = m // 60
+        rest = m % 60
+        if h == 0:
+            return f"{rest} min"
+        elif rest == 0:
+            return f"{h} hora" if h == 1 else f"{h} horas"
+        else:
+            return f"{h}h {rest}min"
 
     @app.template_filter("date_br")
     def date_br_filter(value):
