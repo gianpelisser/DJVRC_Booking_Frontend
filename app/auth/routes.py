@@ -215,7 +215,7 @@ def discord_callback():
     return redirect(url_for("auth.login"))
 
 
-# --- Google OAuth ---
+# --- Google OAuth (login/register) ---
 
 @auth_bp.get("/google")
 def google_login():
@@ -259,6 +259,40 @@ def google_callback():
         "username":      d.get("suggested_username", ""),
     })
     return redirect(url_for("auth.register") + "?" + params)
+
+
+# --- Link Google (vinculação de conta) ---
+
+@auth_bp.get("/link/google")
+def link_google():
+    if not session.get("access_token"):
+        return redirect(url_for("auth.login"))
+    data = api_get("/auth/link/google")
+    if not data or not data.get("success"):
+        flash("Erro ao iniciar vinculação com Google.", "danger")
+        return redirect(url_for("account.dashboard"))
+    return redirect(data["data"]["redirect_url"])
+
+
+
+@auth_bp.get("/link/google/callback")
+def link_google_callback():
+    """Callback para vinculação do Google a uma conta existente."""
+    if not session.get("access_token"):
+        return redirect(url_for("auth.login"))
+    code = request.args.get("code", "")
+    if not code or request.args.get("error"):
+        flash("Autorização cancelada.", "warning")
+        return redirect(url_for("account.dashboard"))
+
+    data = api_get(f"/auth/link/google/callback?code={code}")
+    if data and data.get("success"):
+        session["user"] = data["data"]
+        flash("Google vinculado com sucesso!", "success")
+    else:
+        msg = data.get("message", "Erro ao vincular Google.") if data else "Erro de conexão."
+        flash(msg, "danger")
+    return redirect(url_for("account.dashboard"))
 
 
 # --- Contato ---
