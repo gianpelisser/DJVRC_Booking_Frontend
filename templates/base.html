@@ -17,37 +17,40 @@
   <div class="nav-inner">
     <a href="{{ url_for('index') }}" class="nav-logo">DJ<span>VRC</span></a>
 
+    <!-- Links desktop -->
     <ul class="nav-links">
       <li><a href="{{ url_for('djs.list_djs') }}" class="{% if request.blueprint == 'djs' %}active{% endif %}">DJs</a></li>
       <li><a href="{{ url_for('auth.contact') }}" class="{% if request.endpoint == 'auth.contact' %}active{% endif %}">Contato</a></li>
       {% if is_logged_in %}
         <li><a href="{{ url_for('bookings.list_bookings') }}" class="{% if request.blueprint == 'bookings' %}active{% endif %}">Bookings</a></li>
         <li><a href="{{ url_for('events.list_events') }}" class="{% if request.blueprint == 'events' %}active{% endif %}">Eventos</a></li>
-        {% if current_user.role == 'admin' %}
+        {% if current_user and current_user.role == 'admin' %}
           <li><a href="{{ url_for('admin.dashboard') }}" class="{% if request.blueprint == 'admin' %}active{% endif %}">Admin</a></li>
         {% endif %}
       {% endif %}
     </ul>
 
-    <!-- Hamburguer mobile -->
-    <button class="nav-hamburger btn btn-ghost btn-sm" onclick="toggleMobileMenu()" aria-label="Menu">
-      <span id="hamburger-icon">☰</span>
-    </button>
+    <!-- CTA desktop -->
     <div class="nav-cta">
       {% if is_logged_in %}
         <div class="nav-user">
-          {% if current_user.discord_id and current_user.discord_avatar %}
+          {% if current_user and current_user.discord_id and current_user.discord_avatar %}
             <img src="https://cdn.discordapp.com/avatars/{{ current_user.discord_id }}/{{ current_user.discord_avatar }}.png"
                  style="width:28px; height:28px; border-radius:50%; border:1px solid var(--border);"
                  onerror="this.style.display='none'" />
+          {% elif current_user and current_user.google_avatar %}
+            <img src="{{ current_user.google_avatar }}"
+                 style="width:28px; height:28px; border-radius:50%; border:1px solid var(--border);"
+                 onerror="this.style.display='none'" />
           {% endif %}
-          <span class="nav-username">{{ current_user.username }}</span>
-          {% if current_user.is_dj %}
+          <span class="nav-username">{{ current_user.username if current_user else '' }}</span>
+          <span class="badge badge-contractor" style="font-size:.65rem;">Usuário</span>
+          {% if current_user and current_user.is_dj %}
             <span class="badge badge-dj" style="font-size:.65rem;">DJ</span>
           {% endif %}
           <a href="{{ url_for('notifications.list_notifications', unread='1') }}"
              class="btn btn-ghost btn-sm" style="position:relative; padding:.4rem .55rem;"
-             title="Notificações">
+             title="Notificações não lidas">
             🔔
             {% if unread_notif_count and unread_notif_count > 0 %}
               <span style="position:absolute; top:-4px; right:-4px;
@@ -72,6 +75,51 @@
         <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Cadastrar</a>
       {% endif %}
     </div>
+
+    <!-- Hamburguer mobile -->
+    <button class="nav-hamburger btn btn-ghost btn-sm" onclick="toggleMobileMenu()" aria-label="Menu">
+      <span id="hamburger-icon">☰</span>
+    </button>
+  </div>
+
+  <!-- Menu mobile (dropdown) -->
+  <div id="mobile-menu" class="mobile-menu" style="display:none;">
+    <ul style="list-style:none; padding:0; margin:0;">
+      <li><a href="{{ url_for('djs.list_djs') }}">DJs</a></li>
+      <li><a href="{{ url_for('auth.contact') }}">Contato</a></li>
+      {% if is_logged_in %}
+        <li><a href="{{ url_for('bookings.list_bookings') }}">Bookings</a></li>
+        <li><a href="{{ url_for('events.list_events') }}">Eventos</a></li>
+        <li style="border-top:1px solid var(--border); margin-top:.5rem; padding-top:.5rem;">
+          <a href="{{ url_for('notifications.list_notifications', unread='1') }}">
+            🔔 Notificações
+            {% if unread_notif_count and unread_notif_count > 0 %}
+              <span style="background:var(--danger); color:#fff; font-size:.65rem;
+                           padding:.1rem .4rem; border-radius:999px; margin-left:.25rem;">
+                {{ unread_notif_count }}
+              </span>
+            {% endif %}
+          </a>
+        </li>
+        <li><a href="{{ url_for('account.dashboard') }}">Minha Conta</a></li>
+        {% if current_user and current_user.role == 'admin' %}
+          <li><a href="{{ url_for('admin.dashboard') }}">Painel Admin</a></li>
+        {% endif %}
+        <li style="border-top:1px solid var(--border); margin-top:.5rem; padding-top:.5rem;">
+          <form action="{{ url_for('auth.logout') }}" method="post">
+            <button type="submit" style="background:none; border:none; color:var(--danger);
+                    font-size:.9rem; padding:.6rem 0; cursor:pointer; width:100%; text-align:left;">
+              Sair
+            </button>
+          </form>
+        </li>
+      {% else %}
+        <li style="border-top:1px solid var(--border); margin-top:.5rem; padding-top:.5rem;">
+          <a href="{{ url_for('auth.login') }}">Entrar</a>
+        </li>
+        <li><a href="{{ url_for('auth.register') }}">Criar conta</a></li>
+      {% endif %}
+    </ul>
   </div>
 </nav>
 
@@ -97,15 +145,19 @@
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script>
 function toggleMobileMenu() {
-  const nav = document.querySelector('.nav-links');
+  const menu = document.getElementById('mobile-menu');
   const icon = document.getElementById('hamburger-icon');
-  nav.classList.toggle('mobile-open');
-  icon.textContent = nav.classList.contains('mobile-open') ? '✕' : '☰';
+  const open = menu.style.display === 'none' || menu.style.display === '';
+  menu.style.display = open ? 'block' : 'none';
+  icon.textContent = open ? '✕' : '☰';
 }
-document.querySelectorAll('.nav-links a').forEach(a => {
-  a.addEventListener('click', () => {
-    document.querySelector('.nav-links').classList.remove('mobile-open');
-    document.getElementById('hamburger-icon').textContent = '☰';
+// Fecha ao clicar num link
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('#mobile-menu a').forEach(a => {
+    a.addEventListener('click', () => {
+      document.getElementById('mobile-menu').style.display = 'none';
+      document.getElementById('hamburger-icon').textContent = '☰';
+    });
   });
 });
 </script>

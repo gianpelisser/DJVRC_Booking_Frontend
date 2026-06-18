@@ -157,3 +157,61 @@ def unlink_google():
         msg = data.get("message", "Erro.") if data else "Erro de conexão."
         flash(msg, "danger")
     return redirect(url_for("account.dashboard"))
+
+
+
+
+
+@account_bp.post("/delete")
+@login_required
+def delete_account():
+    """Exclui a conta permanentemente."""
+    confirm = request.form.get("confirm", "").strip()
+    if confirm != "EXCLUIR":
+        flash("Digite EXCLUIR para confirmar a exclusão.", "danger")
+        return redirect(url_for("account.dashboard"))
+
+    from app.core.api import _headers, _url
+    import requests as req
+    resp = req.delete(
+        _url("/auth/me"),
+        headers=_headers(),
+        json={"confirm": "EXCLUIR"},
+        timeout=10,
+    )
+    try:
+        data = resp.json() if resp.content else {}
+    except Exception:
+        data = {}
+
+    if resp.status_code == 200 and data.get("success"):
+        session.clear()
+        flash("Sua conta foi excluída permanentemente.", "info")
+        return redirect(url_for("index"))
+    else:
+        msg = data.get("message", "Erro ao excluir conta.") if data else "Erro de conexão."
+        flash(msg, "danger")
+        return redirect(url_for("account.dashboard"))
+
+
+@account_bp.post("/delete-dj-profile")
+@login_required
+def delete_dj_profile():
+    """Remove o perfil DJ mantendo a conta de usuário."""
+    from app.core.api import _headers, _url
+    import requests as req
+    resp = req.delete(_url("/djs/me"), headers=_headers(), timeout=10)
+    try:
+        data = resp.json() if resp.content else {}
+    except Exception:
+        data = {}
+
+    if resp.status_code == 200 and data.get("success"):
+        u = session.get("user", {})
+        u["is_dj"] = False
+        session["user"] = u
+        flash("Perfil de DJ excluído. Sua conta de usuário foi mantida.", "success")
+    else:
+        msg = data.get("message", "Erro ao excluir perfil DJ.")
+        flash(msg, "danger")
+    return redirect(url_for("account.dashboard"))
