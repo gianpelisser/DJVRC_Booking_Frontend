@@ -21,7 +21,7 @@ def create_app(config_name: str = "development") -> Flask:
     app.register_blueprint(events_bp,   url_prefix="/events")
     app.register_blueprint(admin_bp,    url_prefix="/admin")
     app.register_blueprint(account_bp,       url_prefix="/account")
-    app.register_blueprint(notifications_bp, url_prefix="/notifications")
+    app.register_blueprint(notifications_bp,  url_prefix="/notifications")
 
     # Context processors e filtros globais
     from .core.context import register_context
@@ -47,14 +47,12 @@ def create_app(config_name: str = "development") -> Flask:
     @app.route("/")
     def index():
         from .core.api import api_get
-        # DJs em destaque
-        djs_data = api_get("/djs/", params={"per_page": "8", "sort": "recent"})
-        djs = djs_data.get("data", {}).get("djs", []) if djs_data else []
-
-        # Estatísticas reais do endpoint dedicado
-        stats_data = api_get("/djs/stats")
-        stats = stats_data.get("data", {}) if stats_data else {}
-
-        return render_template("index.html", djs=djs, stats=stats)
+        djs_data      = api_get("/djs/", params={"per_page": "8", "sort": "recent"})
+        stats_data    = api_get("/djs/stats")
+        featured_data = api_get("/djs/featured")
+        djs      = djs_data.get("data", {}).get("djs", []) if djs_data else []
+        stats    = stats_data.get("data", {}) if stats_data else {}
+        featured = featured_data.get("data", []) if featured_data and featured_data.get("success") else []
+        return render_template("index.html", djs=djs, stats=stats, featured=featured)
 
     return app

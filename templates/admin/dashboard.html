@@ -22,6 +22,7 @@
       <div style="display:flex; flex-direction:column; gap:.75rem;">
         <a href="{{ url_for('admin.djs', approved='false') }}" class="btn btn-warning">⏳ Aprovar DJs pendentes ({{ stats.dj_profiles.pending_approval or 0 }})</a>
         <a href="{{ url_for('admin.users') }}" class="btn btn-ghost">👤 Gerenciar usuários</a>
+        <a href="{{ url_for('admin.featured') }}" class="btn btn-ghost">⭐ DJs em Destaque</a>
         <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-ghost">📋 Ver audit logs</a>
       </div>
     </div>
