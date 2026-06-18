@@ -141,10 +141,10 @@ document.querySelectorAll('.nav-links a').forEach(a => {
           <div style="display:flex; flex-direction:column; gap:.5rem;">
             <a href="{{ url_for('index') }}" style="font-size:.85rem; color:var(--muted); text-decoration:none;">Início</a>
             <a href="{{ url_for('djs.list_djs') }}" style="font-size:.85rem; color:var(--muted); text-decoration:none;">Explorar DJs</a>
-            <a href="{{ url_for('auth.contact') }}" style="font-size:.85rem; color:var(--muted); text-decoration:none;">Contato</a>
             {% if is_logged_in %}
               <a href="{{ url_for('account.dashboard') }}" style="font-size:.85rem; color:var(--muted); text-decoration:none;">Minha Conta</a>
               <a href="{{ url_for('bookings.list_bookings') }}" style="font-size:.85rem; color:var(--muted); text-decoration:none;">Meus Bookings</a>
+              <a href="{{ url_for('events.list_events') }}" style="font-size:.85rem; color:var(--muted); text-decoration:none;">Eventos</a>
             {% else %}
               <a href="{{ url_for('auth.login') }}" style="font-size:.85rem; color:var(--muted); text-decoration:none;">Entrar</a>
               <a href="{{ url_for('auth.register') }}" style="font-size:.85rem; color:var(--muted); text-decoration:none;">Criar conta</a>
@@ -159,10 +159,8 @@ document.querySelectorAll('.nav-links a').forEach(a => {
             Comunidade
           </h6>
           <div style="display:flex; flex-direction:column; gap:.5rem;">
-            <a href="https://discord.gg/7jWV989YsK" target="_blank" rel="noopener"
-               style="font-size:.85rem; color:var(--muted); text-decoration:none;">Discord</a>
-            <a href="https://vrchat.com" target="_blank" rel="noopener"
-               style="font-size:.85rem; color:var(--muted); text-decoration:none;">VRChat</a>
+            <a href="https://discord.djvrcbooking.com/" target="_blank" rel="noopener"
+               style="font-size:.85rem; color:var(--muted); text-decoration:none;">Servidor Discord</a>
             <a href="{{ url_for('auth.contact') }}"
                style="font-size:.85rem; color:var(--muted); text-decoration:none;">Suporte</a>
           </div>

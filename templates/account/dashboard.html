@@ -303,6 +303,19 @@
     {% endif %}
   </div>
 
+  <!-- Painel Admin (só para admins) -->
+  {% if user.role == 'admin' %}
+  <div class="card mb-3" style="border-color:rgba(245,158,11,.2);">
+    <div class="card-title mb-2" style="color:var(--warning);">⚙ Painel de Administração</div>
+    <div style="display:flex; gap:.75rem; flex-wrap:wrap;">
+      <a href="{{ url_for('admin.featured') }}" class="btn btn-outline btn-sm"
+         style="border-color:var(--warning); color:var(--warning);">
+        ⭐ DJs em Destaque
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Atalhos -->
   <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
     <a href="{{ url_for('bookings.list_bookings') }}" class="card card-hover" style="text-decoration:none;">

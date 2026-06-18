@@ -36,11 +36,30 @@
   </div>
 </section>
 
+{% if featured %}
+<section class="section" style="border-top: 1px solid var(--border);">
+  <div class="container">
+    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2rem;">
+      <div>
+        <h2 style="margin-bottom:.25rem;">DJS EM DESTAQUE</h2>
+        <p style="font-size:.85rem; color:var(--muted); margin:0;">⭐ Selecionados especialmente para você</p>
+      </div>
+      <a href="{{ url_for('djs.list_djs') }}" class="btn btn-ghost btn-sm">Ver todos →</a>
+    </div>
+    <div class="dj-grid">
+      {% for dj in featured %}
+        {% include "partials/dj_card.html" %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
 {% if djs %}
 <section class="section" style="border-top: 1px solid var(--border);">
   <div class="container">
     <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2rem;">
-      <h2>DJS EM DESTAQUE</h2>
+      <h2>DJS RECENTES</h2>
       <a href="{{ url_for('djs.list_djs') }}" class="btn btn-ghost btn-sm">Ver todos →</a>
     </div>
     <div class="dj-grid">
