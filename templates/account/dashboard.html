@@ -252,11 +252,39 @@
           <div class="card-title" style="margin-bottom:.25rem;">Perfil DJ</div>
           <div style="font-size:.8rem; color:var(--success);">✓ Ativo e visível ao público</div>
         </div>
-        <div style="display:flex; gap:.5rem; flex-shrink:0;">
+        <div style="display:flex; gap:.5rem; flex-shrink:0; flex-wrap:wrap;">
           <a href="{{ url_for('djs.my_profile') }}" class="btn btn-primary btn-sm">Editar perfil DJ</a>
           <a href="{{ url_for('djs.view_my_public_profile') }}"
              class="btn btn-ghost btn-sm" target="_blank">Ver público →</a>
+          <button class="btn btn-ghost btn-sm" style="color:var(--danger);"
+                  onclick="document.getElementById('deleteDjForm').style.display='block'; this.style.display='none';">
+            🗑 Excluir perfil DJ
+          </button>
         </div>
+      </div>
+
+      <!-- Confirmar exclusão do perfil DJ -->
+      <div id="deleteDjForm" style="display:none; margin-bottom:1rem;
+           padding:.85rem 1rem; background:rgba(239,68,68,.05);
+           border:1px solid rgba(239,68,68,.2); border-radius:var(--radius-sm);">
+        <p style="font-size:.85rem; color:var(--text); margin-bottom:.5rem;">
+          ⚠ Seu perfil DJ será removido. <strong>Sua conta de usuário será mantida.</strong><br>
+          <span style="font-size:.8rem; color:var(--muted);">
+            Bookings pendentes precisam ser cancelados antes.
+          </span>
+        </p>
+        <form method="post" action="{{ url_for('account.delete_dj_profile') }}"
+              style="display:flex; gap:.5rem;">
+          <button type="submit" class="btn btn-sm"
+                  style="background:var(--danger); color:#fff; border:none;">
+            Confirmar exclusão
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm"
+                  onclick="document.getElementById('deleteDjForm').style.display='none';
+                           document.querySelector('[onclick*=deleteDjForm]').style.display='';">
+            Cancelar
+          </button>
+        </form>
       </div>
       <!-- Preview do perfil -->
       <div style="display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap;
@@ -315,6 +343,40 @@
     </div>
   </div>
   {% endif %}
+
+  <!-- Excluir conta -->
+  <div class="card mb-3" style="border-color:rgba(239,68,68,.2);">
+    <div class="card-title mb-1" style="color:var(--danger);">⚠ Zona de Perigo</div>
+    <p style="font-size:.85rem; color:var(--muted); margin-bottom:1rem;">
+      A exclusão da conta é permanente e irreversível. Todos os seus dados, bookings e perfil DJ serão apagados.
+    </p>
+    <button class="btn btn-sm" style="border:1px solid var(--danger); color:var(--danger);"
+            onclick="document.getElementById('deleteAccountForm').style.display='block'; this.style.display='none';">
+      Excluir minha conta
+    </button>
+    <div id="deleteAccountForm" style="display:none; margin-top:1rem;
+         padding:1rem; background:rgba(239,68,68,.05); border-radius:var(--radius-sm);
+         border:1px solid rgba(239,68,68,.2);">
+      <p style="font-size:.85rem; color:var(--text); margin-bottom:.75rem;">
+        Digite <strong style="color:var(--danger);">EXCLUIR</strong> para confirmar:
+      </p>
+      <form method="post" action="{{ url_for('account.delete_account') }}">
+        <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+          <input class="form-input" type="text" name="confirm"
+                 placeholder="EXCLUIR" style="max-width:180px; flex:1;" />
+          <button type="submit" class="btn btn-sm"
+                  style="background:var(--danger); color:#fff; border:none;">
+            Confirmar exclusão
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm"
+                  onclick="document.getElementById('deleteAccountForm').style.display='none';
+                           document.querySelector('[onclick*=deleteAccountForm]').style.display='';">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- Atalhos -->
   <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">

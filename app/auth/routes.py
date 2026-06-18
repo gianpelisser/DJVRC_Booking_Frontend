@@ -9,7 +9,9 @@ auth_bp = Blueprint("auth", __name__)
 def login():
     if session.get("access_token"):
         return redirect(url_for("index"))
-    return render_template("auth/login.html", register_config=_get_register_config())
+    cfg = _get_register_config()
+    cfg["email_enabled"] = True  # login por email sempre disponível
+    return render_template("auth/login.html", register_config=cfg)
 
 
 @auth_bp.post("/login")
@@ -26,7 +28,9 @@ def login_post():
 
     msg = data.get("message", "Erro ao fazer login.") if data else "Erro de conexão com a API."
     flash(msg, "danger")
-    return render_template("auth/login.html", email=email, register_config=_get_register_config())
+    cfg = _get_register_config()
+    cfg["email_enabled"] = True
+    return render_template("auth/login.html", email=email, register_config=cfg)
 
 
 @auth_bp.get("/register")
