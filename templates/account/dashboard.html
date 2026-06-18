@@ -100,7 +100,7 @@
             <button class="btn btn-ghost btn-sm" style="color:var(--danger);">Desvincular</button>
           </form>
         {% else %}
-          <a href="{{ url_for('auth.discord_login') }}?next={{ url_for('account.dashboard') }}"
+          <a href="{{ url_for('auth.discord_login') }}?next={{ url_for('account.dashboard') }}&link=1"
              class="btn btn-outline btn-sm" style="border-color:#5865F2; color:#5865F2;">
             Vincular Discord
           </a>
@@ -166,7 +166,7 @@
             <button class="btn btn-ghost btn-sm" style="color:var(--danger);">Desvincular</button>
           </form>
         {% else %}
-          <a href="{{ url_for('auth.google_login') }}"
+          <a href="{{ url_for('auth.link_google') }}"
              class="btn btn-outline btn-sm" style="border-color:#4285F4; color:#4285F4;">
             Vincular Google
           </a>
