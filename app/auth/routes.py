@@ -37,7 +37,8 @@ def login_post():
 def register():
     if session.get("access_token"):
         return redirect(url_for("index"))
-    # Dados pre-preenchidos vindos do Discord (query params)
+    # Avatar do Google em URL no TOKEN
+    oauth_prefill = session.pop("oauth_prefill", {})
     prefill = {
         "discord_id":           request.args.get("discord_id", ""),
         "discord_username":     request.args.get("discord_username", ""),
@@ -45,7 +46,7 @@ def register():
         "discord_avatar":       request.args.get("discord_avatar", ""),
         "google_id":            request.args.get("google_id", ""),
         "google_name":          request.args.get("google_name", ""),
-        "google_avatar":        request.args.get("google_avatar", ""),
+        "google_avatar":        oauth_prefill.get("google_avatar") or request.args.get("google_avatar", ""),
         "email":                request.args.get("email", ""),
         "username":             request.args.get("username", ""),
     }
@@ -251,10 +252,15 @@ def google_callback():
         return redirect(url_for("account.dashboard"))
 
     # action == "register"
+    # Guarda o avatar na sessão para não perder na query string
+    session["oauth_prefill"] = {
+        "google_avatar": d.get("google_avatar", ""),
+    }
+    from urllib.parse import urlencode
     params = urlencode({
         "google_id":     d.get("google_id", ""),
         "google_name":   d.get("google_name", ""),
-        "google_avatar": d.get("google_avatar", ""),
+        # "google_avatar": d.get("google_avatar", ""), (removido: usando no Token da sessão)
         "email":         d.get("email", ""),
         "username":      d.get("suggested_username", ""),
     })
