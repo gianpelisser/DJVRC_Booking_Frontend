@@ -100,7 +100,7 @@
             <button class="btn btn-ghost btn-sm" style="color:var(--danger);">Desvincular</button>
           </form>
         {% else %}
-          <a href="{{ url_for('auth.discord_login') }}?next={{ url_for('account.dashboard') }}&link=1"
+          <a href="{{ url_for('auth.link_discord_via_oauth') }}"
              class="btn btn-outline btn-sm" style="border-color:#5865F2; color:#5865F2;">
             Vincular Discord
           </a>
@@ -222,7 +222,7 @@
         <p style="font-size:.85rem; color:var(--muted); margin:0 0 .75rem;">
           Vincule sua conta Discord para receber DMs quando houver atualizações nos seus bookings.
         </p>
-        <a href="{{ url_for('auth.discord_login') }}"
+        <a href="{{ url_for('auth.link_discord_via_oauth') }}"
            class="btn btn-sm" style="border:1px solid #5865F2; color:#5865F2;">
           Vincular Discord agora
         </a>
