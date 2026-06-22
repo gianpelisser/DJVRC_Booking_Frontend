@@ -261,6 +261,40 @@ def google_callback():
     return redirect(url_for("auth.register") + "?" + params)
 
 
+# --- Link Discord (vinculação de conta) ---
+
+@auth_bp.get("/link/discord")
+def link_discord_via_oauth():
+    """Inicia OAuth Discord para vincular à conta logada."""
+    if not session.get("access_token"):
+        return redirect(url_for("auth.login"))
+    data, status = api_post("/auth/link/discord")
+    if status != 200 or not data or not data.get("success"):
+        flash("Erro ao iniciar vinculação com Discord.", "danger")
+        return redirect(url_for("account.dashboard"))
+    return redirect(data["data"]["redirect_url"])
+
+
+@auth_bp.get("/link/discord/callback")
+def link_discord_callback():
+    """Callback OAuth Discord para vinculação — mesmo padrão do /link/google/callback."""
+    if not session.get("access_token"):
+        return redirect(url_for("auth.login"))
+    code = request.args.get("code", "")
+    if not code or request.args.get("error"):
+        flash("Autorização cancelada.", "warning")
+        return redirect(url_for("account.dashboard"))
+
+    data = api_get(f"/auth/link/discord/callback?code={code}")
+    if data and data.get("success"):
+        session["user"] = data["data"]
+        flash("Discord vinculado com sucesso!", "success")
+    else:
+        msg = data.get("message", "Erro ao vincular Discord.") if data else "Erro de conexão."
+        flash(msg, "danger")
+    return redirect(url_for("account.dashboard"))
+
+
 # --- Link Google (vinculação de conta) ---
 
 @auth_bp.get("/link/google")
