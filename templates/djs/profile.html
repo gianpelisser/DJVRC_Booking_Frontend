@@ -150,6 +150,14 @@
 
         <hr class="divider-line" />
 
+        {% if dj.logo_url %}
+          <a href="{{ dj.logo_url }}" target="_blank" rel="noopener"
+             class="btn btn-ghost btn-block" style="margin-bottom:.5rem;">
+            ⬇ Baixar Logo Kit
+          </a>
+          <hr class="divider-line" />
+        {% endif %}
+
         {% if is_owner %}
           <a href="{{ url_for('djs.my_profile') }}" class="btn btn-outline btn-block">
             Editar meu perfil
@@ -182,5 +190,53 @@
       {% endif %}
     </div>
   </div>
+  <!-- Agenda pública -->
+  <div style="margin-top:2.5rem;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+      <h2 style="font-size:1.1rem; font-family:var(--font-d); letter-spacing:1px;">PRÓXIMAS APRESENTAÇÕES</h2>
+      <a href="{{ url_for('djs.dj_agenda', dj_id=dj.id) }}"
+         style="font-size:.8rem; color:var(--accent);">Ver agenda completa →</a>
+    </div>
+    {% if agenda %}
+      <div style="display:flex; flex-direction:column; gap:.5rem;">
+        {% for entry in agenda[:3] %}
+        <div style="display:flex; align-items:center; gap:1rem; padding:.75rem 1rem;
+                    background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-sm);">
+          <div style="text-align:center; min-width:44px;">
+            <div style="font-size:.7rem; color:var(--muted); text-transform:uppercase;">
+              {{ entry.event_date[5:7] }}/{{ entry.event_date[8:10] }}
+            </div>
+            <div style="font-size:1.1rem; font-weight:700; font-family:var(--font-d); color:var(--accent);">
+              {{ entry.event_date[8:10] }}
+            </div>
+          </div>
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:600; font-size:.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              {{ entry.event_name }}
+            </div>
+            <div style="font-size:.75rem; color:var(--muted);">
+              {{ entry.event_time[:5] }}
+              {% if entry.duration_minutes %} · {{ entry.duration_minutes }}min{% endif %}
+              {% if entry.platform %} · {{ entry.platform }}{% endif %}
+            </div>
+          </div>
+          {% if entry.source == 'booking' %}
+            <span style="font-size:.65rem; color:var(--accent); border:1px solid var(--accent);
+                         border-radius:4px; padding:.1rem .4rem; flex-shrink:0;">booking</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% if agenda|length > 3 %}
+        <a href="{{ url_for('djs.dj_agenda', dj_id=dj.id) }}"
+           style="display:block; text-align:center; margin-top:.75rem; font-size:.83rem; color:var(--muted);">
+          Ver todas as {{ agenda|length }} apresentações →
+        </a>
+      {% endif %}
+    {% else %}
+      <p style="color:var(--muted); font-size:.875rem;">Nenhuma apresentação agendada.</p>
+    {% endif %}
+  </div>
+
 </div>
 {% endblock %}

@@ -76,7 +76,7 @@
       {% if profile.is_approved %}
         <span class="badge badge-confirmed">aprovado</span>
       {% else %}
-        <span class="badge badge-pending">aguardando aprovação</span>
+        <span class="badge badge-pending">Criando Perfil</span>
       {% endif %}
     {% endif %}
   </div>
@@ -312,6 +312,16 @@
                value="{{ profile.social.website if profile.social else '' }}"
                placeholder="https://..." />
       </div>
+      <div class="form-group">
+        <label class="form-label">Logo Kit (URL para download)</label>
+        <input class="form-input" type="url" name="logo_url"
+               value="{{ profile.logo_url or '' }}"
+               placeholder="Ex: link do Google Drive, Dropbox, Imgur..." />
+        <div style="font-size:.78rem; color:var(--muted); margin-top:.3rem;">
+          Forneça um link externo para o seu logo kit (zip com logo, avatar PNG sem fundo, etc).
+          Será exibido como botão "Baixar Logo Kit" no seu perfil público.
+        </div>
+      </div>
     </div>
 
     <!-- Experiência -->
@@ -390,6 +400,7 @@
     <div style="display:flex; gap:1rem; flex-wrap:wrap;">
       <button type="submit" class="btn btn-primary btn-lg">Salvar perfil</button>
       <a href="{{ url_for('djs.availability') }}" class="btn btn-ghost">Disponibilidade →</a>
+      <a href="{{ url_for('djs.my_agenda') }}" class="btn btn-ghost">📅 Minha Agenda →</a>
     </div>
   </form>
 </div>
