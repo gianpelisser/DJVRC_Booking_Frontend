@@ -1,13 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Admin Dashboard — DJ VRC Booking{% endblock %}
 {% block content %}
-<div class="container">
-  <div class="page-header">
-    <h1>PAINEL ADMIN</h1>
-    <p>Visão geral da plataforma</p>
+<div class="container" style="padding-top:2rem; padding-bottom:4rem;">
+
+  <div style="margin-bottom:2rem;">
+    <h1 style="font-size:clamp(1.5rem,4vw,2rem); margin-bottom:.2rem;">PAINEL ADMIN</h1>
+    <p style="color:var(--muted);">Visão geral da plataforma</p>
   </div>
 
-  <div class="stats-grid">
+  <!-- Stats -->
+  <div class="stats-grid" style="margin-bottom:2rem;">
     <div class="stat-card"><div class="stat-num">{{ stats.users.total or 0 }}</div><div class="stat-label">Usuários</div></div>
     <div class="stat-card"><div class="stat-num stat-accent">{{ stats.dj_profiles.approved or 0 }}</div><div class="stat-label">DJs aprovados</div></div>
     <div class="stat-card"><div class="stat-num" style="color:var(--warning);">{{ stats.dj_profiles.pending_approval or 0 }}</div><div class="stat-label">DJs pendentes</div></div>
@@ -17,22 +19,47 @@
   </div>
 
   <div class="grid-2">
+    <!-- Ações rápidas -->
     <div class="card">
-      <div class="card-title mb-2">Ações rápidas</div>
-      <div style="display:flex; flex-direction:column; gap:.75rem;">
-        <a href="{{ url_for('admin.djs', approved='false') }}" class="btn btn-warning">⏳ Aprovar DJs pendentes ({{ stats.dj_profiles.pending_approval or 0 }})</a>
-        <a href="{{ url_for('admin.users') }}" class="btn btn-ghost">👤 Gerenciar usuários</a>
-        <a href="{{ url_for('admin.featured') }}" class="btn btn-ghost">⭐ DJs em Destaque</a>
-        <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-ghost">📋 Ver audit logs</a>
+      <div class="card-title" style="margin-bottom:1rem;">Ações Rápidas</div>
+      <div style="display:flex; flex-direction:column; gap:.6rem;">
+        {% if stats.dj_profiles.pending_approval %}
+        <a href="{{ url_for('admin.djs', approved='false') }}" class="btn btn-warning">
+          ⏳ Aprovar DJs pendentes ({{ stats.dj_profiles.pending_approval }})
+        </a>
+        {% endif %}
+        <a href="{{ url_for('admin.users') }}" class="btn btn-ghost">👥 Gerenciar usuários</a>
+        <a href="{{ url_for('admin.djs') }}" class="btn btn-ghost">🎧 Gerenciar DJs</a>
+        <a href="{{ url_for('admin.featured') }}" class="btn btn-ghost">⭐ DJs em destaque</a>
+        <a href="{{ url_for('admin.genres') }}" class="btn btn-ghost">🎵 Gêneros e formatos</a>
+        <a href="{{ url_for('admin.settings') }}" class="btn btn-ghost">⚙️ Configurações do site</a>
       </div>
     </div>
+
+    <!-- Resumo -->
     <div class="card">
-      <div class="card-title mb-2">Resumo por role</div>
-      <table style="width:100%; font-size:.875rem;">
-        <tr><td style="color:var(--muted); padding:.35rem 0;">DJs</td><td style="color:var(--text); text-align:right;">{{ stats.users.djs or 0 }}</td></tr>
-        <tr><td style="color:var(--muted); padding:.35rem 0;">Contratantes</td><td style="color:var(--text); text-align:right;">{{ stats.users.contractors or 0 }}</td></tr>
-        <tr><td style="color:var(--muted); padding:.35rem 0;">Suspensos</td><td style="color:var(--danger); text-align:right;">{{ stats.users.suspended or 0 }}</td></tr>
-        <tr><td style="color:var(--muted); padding:.35rem 0;">Bookings aceitos</td><td style="color:var(--success); text-align:right;">{{ stats.bookings.accepted or 0 }}</td></tr>
+      <div class="card-title" style="margin-bottom:1rem;">Resumo</div>
+      <table style="width:100%; font-size:.875rem; border-collapse:collapse;">
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="color:var(--muted); padding:.45rem 0;">DJs cadastrados</td>
+          <td style="text-align:right; font-weight:600;">{{ stats.users.djs or 0 }}</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="color:var(--muted); padding:.45rem 0;">Contratantes</td>
+          <td style="text-align:right; font-weight:600;">{{ stats.users.contractors or 0 }}</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="color:var(--muted); padding:.45rem 0;">Contas suspensas</td>
+          <td style="text-align:right; font-weight:600; color:var(--danger);">{{ stats.users.suspended or 0 }}</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="color:var(--muted); padding:.45rem 0;">Bookings aceitos</td>
+          <td style="text-align:right; font-weight:600; color:var(--success);">{{ stats.bookings.accepted or 0 }}</td>
+        </tr>
+        <tr>
+          <td style="color:var(--muted); padding:.45rem 0;">DJs em destaque</td>
+          <td style="text-align:right; font-weight:600; color:var(--accent);">{{ stats.dj_profiles.featured or 0 }}</td>
+        </tr>
       </table>
     </div>
   </div>
