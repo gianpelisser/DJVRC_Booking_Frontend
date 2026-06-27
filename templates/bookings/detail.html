@@ -1,28 +1,24 @@
 {% extends "base_app.html" %}
-{% block title %}Booking #{{ booking.id }} — DJ VRC Booking{% endblock %}
+{% block title %}{{ booking.event_name }} — DJ VRC Booking{% endblock %}
 
-{% set STATUS_LABEL = {
-  'pending':   'Pendente',
-  'accepted':  'Aceito',
-  'declined':  'Recusado',
-  'cancelled': 'Cancelado',
-  'completed': 'Concluído',
+{% set STATUS_PT = {
+  'pending':'Pendente','accepted':'Aceito','declined':'Recusado',
+  'cancelled':'Cancelado','completed':'Finalizado','finished':'Finalizado',
+  'confirmed':'Confirmado','ongoing':'Em andamento'
 } %}
 
 {% block content %}
-<div class="container" style="max-width:960px; padding-top:2rem; padding-bottom:4rem;">
+<div style="max-width:960px;">
 
   <!-- Header -->
   <div style="display:flex; align-items:center; gap:1rem; margin-bottom:2rem; flex-wrap:wrap;">
     <a href="{{ url_for('bookings.list_bookings') }}" class="btn btn-ghost btn-sm">← Voltar</a>
-    <div>
-      <h1 style="font-size:clamp(1.3rem,3vw,1.8rem); margin-bottom:.2rem;">
-        {{ booking.event_name }}
-      </h1>
-      <div style="font-size:.8rem; color:var(--muted);">Booking #{{ booking.id }}</div>
+    <div style="flex:1; min-width:0;">
+      <h1 style="font-size:clamp(1.2rem,3vw,1.7rem); margin-bottom:.15rem;">{{ booking.event_name }}</h1>
+      <div style="font-size:.78rem; color:var(--muted);">Booking #{{ booking.id }}</div>
     </div>
-    <span class="badge badge-{{ booking.status }}" style="font-size:.875rem; padding:.35rem 1rem; margin-left:auto;">
-      {{ STATUS_LABEL.get(booking.status, booking.status) }}
+    <span class="badge badge-{{ booking.status }}" style="font-size:.875rem; padding:.4rem 1rem;">
+      {{ STATUS_PT.get(booking.status, booking.status) }}
     </span>
   </div>
 
@@ -32,12 +28,10 @@
     <div>
 
       <!-- Detalhes do evento -->
-      <div class="card mb-2">
+      <div class="card" style="margin-bottom:1rem;">
         <div style="font-size:.7rem; color:var(--muted); letter-spacing:.1em; text-transform:uppercase;
                     margin-bottom:1rem; font-weight:500;">Detalhes do evento</div>
-
-        <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
-                    gap:1rem; margin-bottom:1.25rem;">
+        <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:1rem; margin-bottom:1rem;">
           <div>
             <div class="detail-label">📅 Data</div>
             <div class="detail-value" style="font-weight:500;">{{ booking.event_date | date_br }}</div>
@@ -60,33 +54,34 @@
 
         {% if booking.description %}
           <div class="detail-label">📝 Descrição</div>
-          <p style="color:var(--text); margin-top:.35rem; line-height:1.75; font-size:.9rem;">
-            {{ booking.description }}
-          </p>
+          <p style="color:var(--text); margin-top:.35rem; line-height:1.75; font-size:.875rem;">{{ booking.description }}</p>
         {% endif %}
 
-        {% if booking.offered_value %}
+        {% set v = booking.offered_value %}
+        {% if v is not none %}
           <hr class="divider-line" />
           <div style="display:flex; align-items:center; justify-content:space-between;">
             <div class="detail-label">💰 Valor oferecido</div>
-            <div style="font-size:1.4rem; font-weight:500; color:var(--accent);">
-              {{ booking.offered_value | currency }} {{ booking.currency }}
-            </div>
+            {% if v|float == 0 %}
+              <div style="font-size:1.2rem; font-weight:500; color:var(--success);">Gratuito</div>
+            {% else %}
+              <div style="font-size:1.2rem; font-weight:500; color:var(--accent);">{{ v | currency }} {{ booking.currency }}</div>
+            {% endif %}
           </div>
         {% endif %}
       </div>
 
-      <!-- Nota do DJ (se houver) -->
+      <!-- Nota do DJ -->
       {% if booking.dj_notes %}
-      <div class="card mb-2" style="border-color:rgba(255,60,110,.2);">
-        <div class="detail-label" style="margin-bottom:.5rem;">📋 Nota do DJ</div>
-        <p style="color:var(--text); font-size:.9rem; line-height:1.7;">{{ booking.dj_notes }}</p>
+      <div class="card" style="border-color:rgba(0,229,255,.15); margin-bottom:1rem;">
+        <div class="detail-label" style="margin-bottom:.5rem;">💬 Mensagem do DJ</div>
+        <p style="color:var(--text); font-size:.875rem; line-height:1.7;">{{ booking.dj_notes }}</p>
       </div>
       {% endif %}
 
-      <!-- Metadados -->
+      <!-- Partes -->
       <div style="font-size:.8rem; color:var(--muted); display:flex; gap:1.5rem; flex-wrap:wrap;
-                  padding:.75rem; background:var(--bg2); border-radius:var(--radius-sm);
+                  padding:.75rem 1rem; background:var(--bg2); border-radius:var(--radius-sm);
                   border:1px solid var(--border);">
         <span>🎧 DJ: <strong style="color:var(--text);">{{ booking.dj_name or ('DJ #' ~ booking.dj_profile_id) }}</strong></span>
         <span>👤 Usuário: <strong style="color:var(--text);">{{ booking.contractor_name or ('Usuário #' ~ booking.contractor_id) }}</strong></span>
@@ -97,15 +92,18 @@
     <!-- COLUNA LATERAL: AÇÕES -->
     <div>
       <div class="card">
-        <div class="card-title mb-3">Ações</div>
+        <div class="card-title" style="margin-bottom:1rem;">Ações</div>
 
         {# === PENDENTE — DJ pode aceitar/recusar === #}
-        {% if booking.status == 'pending' and current_user.is_dj %}
+        {% if booking.status == 'pending' and current_user and current_user.is_dj %}
           <form action="{{ url_for('bookings.accept', booking_id=booking.id) }}" method="post"
                 style="margin-bottom:.75rem;">
-            <button type="submit" class="btn btn-success btn-block btn-lg">
-              ✓ Aceitar proposta
-            </button>
+            <div class="form-group" style="margin-bottom:.5rem;">
+              <label class="form-label">Mensagem ao aceitar (opcional)</label>
+              <textarea class="form-textarea" name="notes" rows="2"
+                        placeholder="Ex: Confirmado! Estarei no servidor às 20h."></textarea>
+            </div>
+            <button type="submit" class="btn btn-success btn-block">✓ Aceitar proposta</button>
           </form>
           <form action="{{ url_for('bookings.decline', booking_id=booking.id) }}" method="post">
             <div class="form-group" style="margin-bottom:.5rem;">
@@ -113,81 +111,81 @@
               <textarea class="form-textarea" name="notes" rows="2"
                         placeholder="Indisponibilidade, data conflitante..."></textarea>
             </div>
-            <button type="submit" class="btn btn-danger btn-block">
-              ✕ Recusar proposta
-            </button>
+            <button type="submit" class="btn btn-danger btn-block">✕ Recusar proposta</button>
           </form>
 
         {# === PENDENTE — Usuário aguarda === #}
         {% elif booking.status == 'pending' %}
-          <div style="display:flex; align-items:center; gap:.6rem; padding:.85rem 1rem;
-                      background:rgba(245,158,11,.06); border:1px solid rgba(245,158,11,.2);
-                      border-radius:var(--radius-sm); margin-bottom:.75rem; font-size:.875rem;">
+          <div style="padding:.85rem 1rem; background:rgba(245,158,11,.06);
+                      border:1px solid rgba(245,158,11,.2); border-radius:var(--radius-sm);
+                      font-size:.875rem; margin-bottom:.75rem;">
             ⏳ Aguardando resposta do DJ
           </div>
 
-        {# === ACEITO === #}
-        {% elif booking.status == 'accepted' %}
-          <div style="display:flex; align-items:center; gap:.6rem; padding:.85rem 1rem;
-                      background:rgba(34,197,94,.06); border:1px solid rgba(34,197,94,.2);
-                      border-radius:var(--radius-sm); margin-bottom:.75rem; font-size:.875rem;
-                      color:var(--success);">
-            ✅ Proposta aceita!
+        {# === ACEITO / CONFIRMADO === #}
+        {% elif booking.status in ['accepted', 'confirmed'] %}
+          <div style="padding:.85rem 1rem; background:rgba(34,197,94,.06);
+                      border:1px solid rgba(34,197,94,.2); border-radius:var(--radius-sm);
+                      font-size:.875rem; color:var(--success); margin-bottom:.75rem;">
+            ✅ Proposta aceita — evento confirmado!
           </div>
-          {% if booking.event_id %}
-            <a href="{{ url_for('events.detail', event_id=booking.event_id) }}"
-               class="btn btn-outline btn-block mb-1">
-              🎉 Ver evento →
-            </a>
-          {% endif %}
+
+        {# === EM ANDAMENTO === #}
+        {% elif booking.status == 'ongoing' %}
+          <div style="padding:.85rem 1rem; background:rgba(0,229,255,.06);
+                      border:1px solid rgba(0,229,255,.2); border-radius:var(--radius-sm);
+                      font-size:.875rem; color:var(--accent); margin-bottom:.75rem;">
+            🔴 Evento em andamento agora
+          </div>
+
+        {# === FINALIZADO === #}
+        {% elif booking.status in ['completed', 'finished'] %}
+          <div style="padding:.85rem 1rem; background:rgba(122,127,154,.06);
+                      border:1px solid var(--border); border-radius:var(--radius-sm);
+                      font-size:.875rem; color:var(--muted); margin-bottom:.75rem;">
+            ✓ Evento finalizado
+          </div>
 
         {# === RECUSADO === #}
         {% elif booking.status == 'declined' %}
-          <div style="display:flex; align-items:center; gap:.6rem; padding:.85rem 1rem;
-                      background:rgba(239,68,68,.06); border:1px solid rgba(239,68,68,.2);
-                      border-radius:var(--radius-sm); margin-bottom:.75rem; font-size:.875rem;
-                      color:var(--danger);">
+          <div style="padding:.85rem 1rem; background:rgba(239,68,68,.06);
+                      border:1px solid rgba(239,68,68,.2); border-radius:var(--radius-sm);
+                      font-size:.875rem; color:var(--danger); margin-bottom:.75rem;">
             ❌ Proposta recusada
           </div>
-          {% if not current_user.is_dj %}
-            <a href="{{ url_for('djs.list_djs') }}" class="btn btn-outline btn-block mb-1">
-              Buscar outro DJ →
-            </a>
-          {% endif %}
+          <a href="{{ url_for('djs.list_djs') }}" class="btn btn-outline btn-block btn-sm">
+            Buscar outro DJ →
+          </a>
 
         {# === CANCELADO === #}
         {% elif booking.status == 'cancelled' %}
-          <div style="display:flex; align-items:center; gap:.6rem; padding:.85rem 1rem;
-                      background:rgba(122,127,154,.06); border:1px solid var(--border);
-                      border-radius:var(--radius-sm); margin-bottom:.75rem; font-size:.875rem;
-                      color:var(--muted);">
+          <div style="padding:.85rem 1rem; background:rgba(122,127,154,.06);
+                      border:1px solid var(--border); border-radius:var(--radius-sm);
+                      font-size:.875rem; color:var(--muted); margin-bottom:.75rem;">
             🚫 Booking cancelado
           </div>
         {% endif %}
 
         {# --- Cancelar (pendentes e aceitos) --- #}
-        {% if booking.status in ['pending', 'accepted'] %}
+        {% if booking.status in ['pending', 'accepted', 'confirmed'] %}
           <hr class="divider-line" />
           <form action="{{ url_for('bookings.cancel', booking_id=booking.id) }}" method="post">
             <button type="submit" class="btn btn-ghost btn-block btn-sm"
-                    data-confirm="Tem certeza que deseja cancelar este booking?">
+                    onclick="return confirm('Tem certeza que deseja cancelar este booking?')">
               Cancelar booking
             </button>
           </form>
         {% endif %}
 
-        {# --- Apagar (cancelados/recusados, após 24h) --- #}
-        {% if booking.status in ['cancelled', 'declined'] %}
+        {# --- Apagar (apenas se cancelado, recusado ou finalizado) --- #}
+        {% if booking.status in ['cancelled', 'declined', 'completed', 'finished'] %}
           <hr class="divider-line" />
           <form action="{{ url_for('bookings.delete_booking', booking_id=booking.id) }}" method="post">
             <button type="submit" class="btn btn-danger btn-block btn-sm"
-                    data-confirm="Apagar permanentemente este booking? Esta ação não pode ser desfeita.">
-              🗑 Apagar booking
+                    onclick="return confirm('Apagar permanentemente? Esta ação não pode ser desfeita.')">
+              🗑 Apagar
             </button>
           </form>
-          <div style="font-size:.75rem; color:var(--muted); text-align:center; margin-top:.5rem;">
-            Disponível 24h após o cancelamento/recusa
-          </div>
         {% endif %}
 
       </div>

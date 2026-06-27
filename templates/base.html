@@ -22,8 +22,7 @@
       <li><a href="{{ url_for('djs.list_djs') }}" class="{% if request.blueprint == 'djs' %}active{% endif %}">DJs</a></li>
       <li><a href="{{ url_for('auth.contact') }}" class="{% if request.endpoint == 'auth.contact' %}active{% endif %}">Contato</a></li>
       {% if is_logged_in %}
-        <li><a href="{{ url_for('bookings.list_bookings') }}" class="{% if request.blueprint == 'bookings' %}active{% endif %}">Bookings</a></li>
-        <li><a href="{{ url_for('events.list_events') }}" class="{% if request.blueprint == 'events' %}active{% endif %}">Eventos</a></li>
+        <li><a href="{{ url_for('bookings.list_bookings') }}" class="{% if request.blueprint == 'bookings' or request.blueprint == 'events' %}active{% endif %}">Bookings</a></li>
         {% if current_user and current_user.role == 'admin' %}
           <li><a href="{{ url_for('admin.dashboard') }}" class="{% if request.blueprint == 'admin' %}active{% endif %}">Admin</a></li>
         {% endif %}
@@ -45,9 +44,6 @@
           {% endif %}
           <span class="nav-username">{{ current_user.username if current_user else '' }}</span>
           <span class="badge badge-user" style="font-size:.65rem;">Usuário</span>
-          {% if current_user and current_user.is_dj %}
-            <span class="badge badge-dj" style="font-size:.65rem;">DJ</span>
-          {% endif %}
           <a href="{{ url_for('notifications.list_notifications', unread='1') }}"
              class="btn btn-ghost btn-sm" style="position:relative; padding:.4rem .55rem;"
              title="Notificações não lidas">

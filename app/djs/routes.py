@@ -137,6 +137,11 @@ def my_profile_post():
         "presentation_format_ids": format_ids,
     }
 
+    # Se usuário tem Discord vinculado, usar dados reais em vez do campo manual
+    user = session.get("user", {})
+    if user.get("discord_username"):
+        payload["discord_tag"] = user["discord_username"]
+
     if not payload["artist_name"]:
         flash("Nome artistico é obrigatorio.", "danger")
         return redirect(url_for("djs.my_profile"))

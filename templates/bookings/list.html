@@ -1,124 +1,126 @@
 {% extends "base_app.html" %}
 {% block title %}Meus Bookings — DJ VRC Booking{% endblock %}
 
-{% set STATUS_LABEL = {
-  '':'Todos','pending':'Pendentes','accepted':'Aceitos',
-  'declined':'Recusados','cancelled':'Cancelados','completed':'Concluídos'
+{% set STATUS_PT = {
+  'pending':'Pendente','accepted':'Aceito','declined':'Recusado',
+  'cancelled':'Cancelado','completed':'Finalizado','finished':'Finalizado',
+  'confirmed':'Confirmado','ongoing':'Em andamento'
 } %}
-{% set STATUS_BADGE = {
-  'pending':'warning','accepted':'confirmed','declined':'declined',
-  'cancelled':'cancelled','completed':'finished'
+{% set STATUS_ICON = {
+  'pending':'⏳','accepted':'✅','declined':'❌',
+  'cancelled':'🚫','completed':'✓','finished':'✓',
+  'confirmed':'🎉','ongoing':'🔴'
 } %}
 
 {% block content %}
-<div class="container">
-  <div class="page-header">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
-      <div>
-        <h1>MEUS BOOKINGS</h1>
-        <p>
-          {% if current_user.is_dj %}Propostas recebidas e enviadas
-          {% else %}Suas propostas de contratação{% endif %}
-        </p>
-      </div>
-      {% if not current_user.is_dj %}
-        <a href="{{ url_for('djs.list_djs') }}" class="btn btn-primary btn-sm">+ Contratar DJ</a>
-      {% endif %}
-    </div>
+<div class="app-page-header">
+  <div>
+    <h1 class="app-page-title">BOOKINGS</h1>
+    <p class="app-page-sub">
+      {% if current_user and current_user.is_dj %}Propostas recebidas e enviadas{% else %}Suas contratações de DJ{% endif %}
+    </p>
   </div>
+  <a href="{{ url_for('djs.list_djs') }}" class="btn btn-primary btn-sm">+ Contratar DJ</a>
+</div>
 
-  <!-- Filtros -->
-  <div style="display:flex; gap:.5rem; margin-bottom:2rem; flex-wrap:wrap;">
-    {% for s in ['', 'pending', 'accepted', 'declined', 'cancelled'] %}
-      <a href="?status={{ s }}"
-         class="page-btn {% if status_filter == s %}active{% endif %}">
-        {{ STATUS_LABEL[s] }}
-      </a>
+<!-- Filtros -->
+<div style="display:flex; gap:.4rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+  {% for s, label in [('','Todos'),('pending','Pendentes'),('accepted','Aceitos'),
+                       ('confirmed','Confirmados'),('ongoing','Em andamento'),
+                       ('declined','Recusados'),('cancelled','Cancelados'),
+                       ('completed','Finalizados')] %}
+    <a href="?status={{ s }}"
+       class="page-btn {% if status_filter == s %}active{% endif %}">
+      {{ label }}
+    </a>
+  {% endfor %}
+</div>
+
+{% if bookings %}
+  <div style="display:flex; flex-direction:column; gap:.6rem;">
+    {% for b in bookings %}
+    <a href="{{ url_for('bookings.detail', booking_id=b.id) }}"
+       style="text-decoration:none; display:block;"
+       class="card card-hover">
+      <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+
+        <!-- Barra lateral de status -->
+        <div style="width:4px; align-self:stretch; border-radius:4px; flex-shrink:0;
+                    background:{% if b.status == 'pending' %}var(--warning)
+                               {% elif b.status in ['accepted','confirmed'] %}var(--success)
+                               {% elif b.status == 'ongoing' %}var(--accent)
+                               {% elif b.status in ['declined','cancelled'] %}var(--danger)
+                               {% else %}var(--muted){% endif %};"></div>
+
+        <!-- Tipo: booking (pedido) ou evento confirmado -->
+        <div style="text-align:center; min-width:36px; flex-shrink:0;">
+          {% if b.status in ['accepted','confirmed','ongoing','completed','finished'] %}
+            <span title="Evento confirmado" style="font-size:1.2rem;">🎉</span>
+          {% else %}
+            <span title="Proposta de booking" style="font-size:1.2rem;">📋</span>
+          {% endif %}
+        </div>
+
+        <!-- Info principal -->
+        <div style="flex:1; min-width:0;">
+          <div style="font-weight:500; color:var(--text); margin-bottom:.2rem;
+                      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            {{ b.event_name }}
+          </div>
+          <div style="font-size:.78rem; color:var(--muted); display:flex; gap:.75rem; flex-wrap:wrap;">
+            <span>📅 {{ b.event_date | date_br }}</span>
+            <span>🕐 {{ b.event_time }}</span>
+            <span>⏱ {{ b.duration_minutes | duracao }}</span>
+            {% if b.platform %}<span>🎮 {{ b.platform }}</span>{% endif %}
+          </div>
+        </div>
+
+        <!-- DJ ou Usuário -->
+        <div style="text-align:center; flex-shrink:0; min-width:80px;">
+          {% if current_user and current_user.is_dj and b.contractor_id == current_user.id %}
+            <div style="font-size:.68rem; color:var(--muted);">você contratou</div>
+            <div style="font-size:.8rem; color:var(--text);">{{ b.dj_name or '—' }}</div>
+          {% elif current_user and current_user.is_dj %}
+            <div style="font-size:.68rem; color:var(--muted);">de</div>
+            <div style="font-size:.8rem; color:var(--text);">{{ b.contractor_name or '—' }}</div>
+          {% else %}
+            <div style="font-size:.68rem; color:var(--muted);">DJ</div>
+            <div style="font-size:.8rem; color:var(--text);">{{ b.dj_name or '—' }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Valor -->
+        <div style="text-align:right; flex-shrink:0; min-width:70px;">
+          {% set v = b.offered_value %}
+          {% if v is not none and v|float == 0 %}
+            <div style="font-size:.75rem; color:var(--success);">Gratuito</div>
+          {% elif v %}
+            <div style="font-size:.7rem; color:var(--muted);">valor</div>
+            <div style="font-weight:500; color:var(--accent); font-size:.88rem;">{{ v | currency }}</div>
+          {% else %}
+            <div style="font-size:.75rem; color:var(--muted);">A combinar</div>
+          {% endif %}
+        </div>
+
+        <!-- Status badge -->
+        <span class="badge badge-{{ b.status }}" style="flex-shrink:0;">
+          {{ STATUS_ICON.get(b.status,'') }} {{ STATUS_PT.get(b.status, b.status) }}
+        </span>
+
+        <span style="color:var(--muted); flex-shrink:0;">›</span>
+      </div>
+    </a>
     {% endfor %}
   </div>
 
-  {% if bookings %}
-    <!-- Cards em vez de tabela para visual mais rico -->
-    <div style="display:flex; flex-direction:column; gap:.75rem;">
-      {% for b in bookings %}
-      <a href="{{ url_for('bookings.detail', booking_id=b.id) }}"
-         style="text-decoration:none;"
-         class="card card-hover"
-         style="display:block;">
-        <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
-
-          <!-- Status indicator -->
-          <div style="width:4px; height:56px; border-radius:4px; flex-shrink:0;
-                      background:{% if b.status == 'pending' %}var(--warning)
-                                 {% elif b.status == 'accepted' %}var(--success)
-                                 {% elif b.status == 'declined' %}var(--danger)
-                                 {% elif b.status == 'cancelled' %}var(--muted)
-                                 {% else %}var(--accent){% endif %};"></div>
-
-          <!-- Info principal -->
-          <div style="flex:1; min-width:0;">
-            <div style="font-weight:500; color:var(--text); margin-bottom:.2rem;
-                        white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-              {{ b.event_name }}
-            </div>
-            <div style="font-size:.8rem; color:var(--muted); display:flex; gap:1rem; flex-wrap:wrap;">
-              <span>📅 {{ b.event_date | date_br }}</span>
-              <span>🕐 {{ b.event_time }}</span>
-              <span>⏱ {{ b.duration_minutes | duracao }}</span>
-              {% if b.platform %}<span>🎮 {{ b.platform }}</span>{% endif %}
-            </div>
-          </div>
-
-          <!-- Perspectiva -->
-          <div style="text-align:center; flex-shrink:0;">
-            {% if current_user.is_dj and b.contractor_id == current_user.id %}
-              <div style="font-size:.7rem; color:var(--muted);">Você contratou</div>
-              <div style="font-size:.8rem; color:var(--text);">{{ b.dj_name or ('DJ #' ~ b.dj_profile_id) }}</div>
-            {% elif current_user.is_dj %}
-              <div style="font-size:.7rem; color:var(--muted);">Usuário</div>
-              <div style="font-size:.8rem; color:var(--text);">{{ b.contractor_name or ('Usuário #' ~ b.contractor_id) }}</div>
-            {% else %}
-              <div style="font-size:.7rem; color:var(--muted);">DJ</div>
-              <div style="font-size:.8rem; color:var(--text);">{{ b.dj_name or ('DJ #' ~ b.dj_profile_id) }}</div>
-            {% endif %}
-          </div>
-
-          <!-- Valor -->
-          {% if b.offered_value %}
-          <div style="text-align:right; flex-shrink:0;">
-            <div style="font-size:.7rem; color:var(--muted);">Valor</div>
-            <div style="font-weight:500; color:var(--accent); font-size:.9rem;">
-              {{ b.offered_value | currency }}
-            </div>
-          </div>
-          {% endif %}
-
-          <!-- Status badge -->
-          <div style="flex-shrink:0;">
-            <span class="badge badge-{{ b.status }}">
-              {{ {'pending':'⏳ Pendente','accepted':'✅ Aceito','declined':'❌ Recusado',
-                  'cancelled':'🚫 Cancelado','completed':'✓ Concluído'}.get(b.status, b.status) }}
-            </span>
-          </div>
-
-          <span style="color:var(--muted); font-size:.9rem; flex-shrink:0;">›</span>
-        </div>
-      </a>
-      {% endfor %}
-    </div>
-
-  {% else %}
-    <div class="empty">
-      <div class="empty-icon">📋</div>
-      <h3>Nenhum booking encontrado</h3>
-      <p>
-        {% if current_user.is_dj %}
-          Nenhuma proposta com esse filtro.
-        {% else %}
-          <a href="{{ url_for('djs.list_djs') }}">Explore os DJs disponíveis</a> para fazer sua primeira contratação.
-        {% endif %}
-      </p>
-    </div>
-  {% endif %}
-</div>
+{% else %}
+  <div class="empty">
+    <div class="empty-icon">📋</div>
+    <h3>Nenhum booking encontrado</h3>
+    <p>
+      {% if status_filter %}<a href="?status=" style="color:var(--accent);">Ver todos</a> ou {% endif %}
+      <a href="{{ url_for('djs.list_djs') }}" style="color:var(--accent);">explore os DJs disponíveis</a>.
+    </p>
+  </div>
+{% endif %}
 {% endblock %}
