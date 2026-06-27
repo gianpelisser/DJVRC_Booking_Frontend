@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base_app.html" %}
 {% block title %}Meus Bookings — DJ VRC Booking{% endblock %}
 
 {% set STATUS_LABEL = {
@@ -75,7 +75,7 @@
               <div style="font-size:.7rem; color:var(--muted);">Você contratou</div>
               <div style="font-size:.8rem; color:var(--text);">{{ b.dj_name or ('DJ #' ~ b.dj_profile_id) }}</div>
             {% elif current_user.is_dj %}
-              <div style="font-size:.7rem; color:var(--muted);">Contratante</div>
+              <div style="font-size:.7rem; color:var(--muted);">Usuário</div>
               <div style="font-size:.8rem; color:var(--text);">{{ b.contractor_name or ('Usuário #' ~ b.contractor_id) }}</div>
             {% else %}
               <div style="font-size:.7rem; color:var(--muted);">DJ</div>

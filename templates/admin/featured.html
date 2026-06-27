@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}DJs em Destaque — Admin{% endblock %}
+{% block content %}
+<div class="container" style="max-width:900px; padding-top:2rem; padding-bottom:4rem;">
+
+  <div style="display:flex; align-items:center; justify-content:space-between;
+              gap:1rem; margin-bottom:2rem; flex-wrap:wrap;">
+    <div>
+      <h1 style="font-size:clamp(1.5rem,4vw,2rem); margin-bottom:.2rem;">DJs EM DESTAQUE</h1>
+      <p style="color:var(--muted); font-size:.875rem;">
+        Gerencie quais DJs aparecem na seção de destaque da página inicial.
+      </p>
+    </div>
+    <a href="{{ url_for('account.dashboard') }}" class="btn btn-ghost btn-sm">← Voltar</a>
+  </div>
+
+  {% if djs %}
+  <div style="display:flex; flex-direction:column; gap:.75rem;">
+    {% for dj in djs %}
+    <div style="display:flex; align-items:center; gap:1rem; padding:1rem 1.25rem;
+                background:{{ 'rgba(0,229,255,.04)' if dj.is_featured else 'var(--bg2)' }};
+                border:1px solid {{ 'rgba(0,229,255,.2)' if dj.is_featured else 'var(--border)' }};
+                border-radius:var(--radius-sm); flex-wrap:wrap;">
+
+      <!-- Avatar -->
+      <div style="width:44px; height:44px; border-radius:50%; overflow:hidden; flex-shrink:0;
+                  background:linear-gradient(135deg,#00b4d8,#0077b6);">
+        {% if dj.avatar_url %}
+          <img src="{{ dj.avatar_url }}" style="width:100%; height:100%; object-fit:cover;"
+               onerror="this.style.display='none'" />
+        {% else %}
+          <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+                      font-family:var(--font-d); font-size:1.1rem; color:#fff;">
+            {{ dj.artist_name[0].upper() }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Nome e status -->
+      <div style="flex:1; min-width:0;">
+        <div style="font-weight:500; color:var(--text);">{{ dj.artist_name }}</div>
+        <div style="font-size:.78rem; color:var(--muted);">
+          {% if dj.is_featured %}
+            ⭐ Em destaque até
+            <strong style="color:var(--success);">{{ dj.featured_until[:10] | replace('-', '/') }}</strong>
+          {% else %}
+            Sem destaque
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Ações -->
+      <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
+        {% if dj.is_featured %}
+          <form method="post"
+                action="{{ url_for('admin.remove_featured', dj_id=dj.id) }}">
+            <button class="btn btn-danger btn-sm">✕ Remover destaque</button>
+          </form>
+        {% endif %}
+
+        <!-- Formulário para adicionar/renovar -->
+        <form method="post"
+              action="{{ url_for('admin.set_featured', dj_id=dj.id) }}"
+              style="display:flex; gap:.35rem; align-items:center;">
+          <select name="days" class="form-select"
+                  style="padding:.3rem .6rem; font-size:.8rem; width:auto;">
+            <option value="1">1 dia</option>
+            <option value="7">7 dias</option>
+            <option value="15">15 dias</option>
+            <option value="30" selected>30 dias</option>
+            <option value="60">60 dias</option>
+            <option value="90">90 dias</option>
+            <option value="180">6 meses</option>
+            <option value="365">1 ano</option>
+          </select>
+          <button class="btn btn-primary btn-sm">
+            {% if dj.is_featured %}↺ Renovar{% else %}⭐ Destacar{% endif %}
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+    <div class="empty">
+      <div class="empty-icon">⭐</div>
+      <h3>Nenhum DJ cadastrado</h3>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

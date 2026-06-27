@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base_app.html" %}
 {% block title %}Minha Conta — DJ VRC Booking{% endblock %}
 {% block content %}
 <div class="container" style="max-width:780px; padding-top:2rem; padding-bottom:4rem;">
@@ -24,7 +24,7 @@
     <div>
       <h1 style="font-size:clamp(1.3rem,4vw,2rem); margin-bottom:.25rem;">{{ user.username }}</h1>
       <div style="display:flex; gap:.5rem; flex-wrap:wrap; align-items:center;">
-        <span class="badge badge-contractor">Usuário</span>
+        <span class="badge badge-user">Usuário</span>
         {% if user.is_dj %}<span class="badge badge-dj">DJ</span>{% endif %}
         {% if user.discord_username %}
           <span style="font-size:.8rem; color:var(--muted);">

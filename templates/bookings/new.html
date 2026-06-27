@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base_app.html" %}
 {% block title %}Nova proposta para {{ dj.artist_name }} — DJ VRC Booking{% endblock %}
 {% block content %}
 <div class="container" style="max-width:680px; padding-top:2rem; padding-bottom:4rem;">
@@ -51,6 +51,41 @@
           <input class="form-input" type="time" name="event_time" required />
         </div>
       </div>
+
+      <!-- Disponibilidade do DJ como referência -->
+      {% set weekdays = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'] %}
+      {% set avail_days = dj.availability | selectattr('weekday', 'ne', none) | list if dj.availability else [] %}
+      {% set blocked_dates = dj.availability | selectattr('blocked_date', 'ne', none) | list if dj.availability else [] %}
+      {% if avail_days or blocked_dates %}
+      <div style="background:rgba(0,229,255,.04); border:1px solid rgba(0,229,255,.12);
+                  border-radius:var(--radius-sm); padding:.85rem 1rem; margin-bottom:1rem;">
+        <div style="font-size:.75rem; color:var(--accent); font-weight:600;
+                    letter-spacing:.05em; margin-bottom:.5rem;">
+          📅 DISPONIBILIDADE DE {{ dj.artist_name | upper }}
+        </div>
+        {% if avail_days %}
+          <div style="display:flex; flex-wrap:wrap; gap:.35rem; margin-bottom:.35rem;">
+            {% for a in avail_days | sort(attribute='weekday') %}
+              <span style="background:var(--bg2); border:1px solid var(--border);
+                           border-radius:4px; padding:.2rem .6rem; font-size:.78rem; color:var(--text);">
+                {{ weekdays[a.weekday] }}
+                {% if a.start_time and a.end_time %}
+                  <span style="color:var(--muted);">{{ a.start_time }} – {{ a.end_time }}</span>
+                {% endif %}
+              </span>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% if blocked_dates %}
+          <div style="font-size:.75rem; color:var(--danger);">
+            🚫 Bloqueado: {{ blocked_dates | map(attribute='blocked_date') | join(', ') }}
+          </div>
+        {% endif %}
+        <div style="font-size:.72rem; color:var(--muted); margin-top:.4rem;">
+          Escolha uma data e horário compatível com a disponibilidade acima.
+        </div>
+      </div>
+      {% endif %}
 
       <!-- Duração flexível -->
       <div class="form-group">

@@ -1,0 +1,78 @@
+{% extends "base_app.html" %}
+{% block title %}Admin — Gêneros e Formatos{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:2rem; padding-bottom:4rem;">
+
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:2rem;">
+    <div>
+      <h1 style="font-size:clamp(1.5rem,4vw,2rem); margin-bottom:.2rem;">GÊNEROS & FORMATOS</h1>
+      <p style="color:var(--muted);">Gerencie as opções disponíveis nos perfis de DJ</p>
+    </div>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-ghost btn-sm">← Dashboard</a>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; align-items:start;">
+
+    <!-- Gêneros -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:1rem;">🎵 Gêneros Musicais</div>
+
+      <form method="post" action="{{ url_for('admin.add_genre') }}"
+            style="display:flex; gap:.5rem; margin-bottom:1.25rem;">
+        <input class="form-input" type="text" name="name" placeholder="Ex: Afrobeats"
+               required style="flex:1;" />
+        <button class="btn btn-primary btn-sm">+ Adicionar</button>
+      </form>
+
+      <div style="display:flex; flex-direction:column; gap:.35rem; max-height:400px; overflow-y:auto;">
+        {% for g in genres %}
+        <div style="display:flex; align-items:center; justify-content:space-between;
+                    padding:.5rem .75rem; background:var(--bg); border-radius:var(--radius-sm);">
+          <div>
+            <span style="font-size:.88rem;">{{ g.name }}</span>
+            <span style="font-size:.72rem; color:var(--muted); margin-left:.5rem;">{{ g.slug }}</span>
+          </div>
+          <form method="post" action="{{ url_for('admin.delete_genre', genre_id=g.id) }}">
+            <button class="btn btn-ghost btn-sm" style="color:var(--danger); padding:.2rem .5rem;"
+                    onclick="return confirm('Remover {{ g.name }}?')">✕</button>
+          </form>
+        </div>
+        {% else %}
+        <p style="color:var(--muted); font-size:.85rem;">Nenhum gênero cadastrado.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Formatos -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:1rem;">📺 Formatos de Apresentação</div>
+
+      <form method="post" action="{{ url_for('admin.add_format') }}"
+            style="display:flex; gap:.5rem; margin-bottom:1.25rem;">
+        <input class="form-input" type="text" name="name" placeholder="Ex: Live via Rumble"
+               required style="flex:1;" />
+        <button class="btn btn-primary btn-sm">+ Adicionar</button>
+      </form>
+
+      <div style="display:flex; flex-direction:column; gap:.35rem; max-height:400px; overflow-y:auto;">
+        {% for f in formats %}
+        <div style="display:flex; align-items:center; justify-content:space-between;
+                    padding:.5rem .75rem; background:var(--bg); border-radius:var(--radius-sm);">
+          <div>
+            <span style="font-size:.88rem;">{{ f.name }}</span>
+            <span style="font-size:.72rem; color:var(--muted); margin-left:.5rem;">{{ f.slug }}</span>
+          </div>
+          <form method="post" action="{{ url_for('admin.delete_format', fmt_id=f.id) }}">
+            <button class="btn btn-ghost btn-sm" style="color:var(--danger); padding:.2rem .5rem;"
+                    onclick="return confirm('Remover {{ f.name }}?')">✕</button>
+          </form>
+        </div>
+        {% else %}
+        <p style="color:var(--muted); font-size:.85rem;">Nenhum formato cadastrado.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

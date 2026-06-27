@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base_app.html" %}
 {% block title %}Booking #{{ booking.id }} — DJ VRC Booking{% endblock %}
 
 {% set STATUS_LABEL = {
@@ -89,7 +89,7 @@
                   padding:.75rem; background:var(--bg2); border-radius:var(--radius-sm);
                   border:1px solid var(--border);">
         <span>🎧 DJ: <strong style="color:var(--text);">{{ booking.dj_name or ('DJ #' ~ booking.dj_profile_id) }}</strong></span>
-        <span>👤 Contratante: <strong style="color:var(--text);">{{ booking.contractor_name or ('Usuário #' ~ booking.contractor_id) }}</strong></span>
+        <span>👤 Usuário: <strong style="color:var(--text);">{{ booking.contractor_name or ('Usuário #' ~ booking.contractor_id) }}</strong></span>
         <span>🗓 Criado em {{ booking.created_at[:10] | date_br if booking.created_at else '—' }}</span>
       </div>
     </div>
@@ -118,7 +118,7 @@
             </button>
           </form>
 
-        {# === PENDENTE — Contratante aguarda === #}
+        {# === PENDENTE — Usuário aguarda === #}
         {% elif booking.status == 'pending' %}
           <div style="display:flex; align-items:center; gap:.6rem; padding:.85rem 1rem;
                       background:rgba(245,158,11,.06); border:1px solid rgba(245,158,11,.2);
