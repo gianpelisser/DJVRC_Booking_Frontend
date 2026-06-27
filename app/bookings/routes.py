@@ -88,7 +88,9 @@ def new_booking_post(dj_id):
 @bookings_bp.post("/<int:booking_id>/accept")
 @login_required
 def accept(booking_id):
-    data, status = api_post(f"/bookings/{booking_id}/accept")
+    notes = request.form.get("notes", "").strip()
+    payload = {"notes": notes} if notes else {}
+    data, status = api_post(f"/bookings/{booking_id}/accept", payload)
     if status == 200 and data and data.get("success"):
         flash("Proposta aceita! O evento foi criado.", "success")
     else:
@@ -125,16 +127,10 @@ def cancel(booking_id):
 @bookings_bp.post("/<int:booking_id>/delete")
 @login_required
 def delete_booking(booking_id):
-    import requests as req
-    from flask import current_app, session
-    from app.core.api import _headers, _url
-    try:
-        resp = req.delete(_url(f"/bookings/{booking_id}"), headers=_headers(), timeout=10)
-        data = resp.json()
-        if resp.status_code == 200 and data.get("success"):
-            flash("Booking apagado.", "success")
-        else:
-            flash(data.get("message", "Erro ao apagar."), "danger")
-    except Exception as e:
-        flash("Erro de conexão.", "danger")
+    data, status = api_delete(f"/bookings/{booking_id}")
+    if status == 200 and data and data.get("success"):
+        flash("Booking apagado.", "success")
+    else:
+        msg = data.get("message", "Erro ao apagar.") if data else "Erro de conexão."
+        flash(msg, "danger")
     return redirect(url_for("bookings.list_bookings"))

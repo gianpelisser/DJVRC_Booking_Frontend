@@ -132,28 +132,52 @@
     </div>
 
     <div class="card mb-3">
-      <div class="card-title mb-2">Valor oferecido</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Valor</label>
-          <input class="form-input" type="number" name="offered_value" step="0.01" min="0"
-            placeholder="{% if dj.hourly_rate %}Sugerido: {{ dj.hourly_rate }}{% else %}Opcional{% endif %}" />
-          {% if dj.minimum_rate %}
-            <div class="form-hint">Mínimo: {{ dj.minimum_rate | currency }} {{ dj.currency }}</div>
-          {% endif %}
-          {% if dj.negotiable %}
-            <div class="form-hint">✓ Este DJ aceita negociação</div>
-          {% endif %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">Moeda</label>
-          <select class="form-select" name="currency">
-            {% for c in ['USD','BRL','EUR'] %}
-              <option value="{{ c }}" {% if (dj.currency or 'USD') == c %}selected{% endif %}>{{ c }}</option>
-            {% endfor %}
-          </select>
-        </div>
+      <div class="card-title mb-2">Proposta de valor</div>
+
+      <div style="display:flex; flex-direction:column; gap:.5rem; margin-bottom:1rem;">
+        <label style="display:flex; align-items:center; gap:.75rem; padding:.75rem 1rem;
+                       background:var(--bg); border:1px solid var(--border);
+                       border-radius:var(--radius-sm); cursor:pointer; font-size:.875rem;">
+          <input type="radio" name="valor_tipo" value="free" id="v_free" style="accent-color:var(--accent);" />
+          <span>🆓 <strong>Gratuito</strong> — quero solicitar sem custo</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:.75rem; padding:.75rem 1rem;
+                       background:var(--bg); border:1px solid var(--border);
+                       border-radius:var(--radius-sm); cursor:pointer; font-size:.875rem;">
+          <input type="radio" name="valor_tipo" value="fixed" id="v_fixed" style="accent-color:var(--accent);" />
+          <span>💵 <strong>Informar valor</strong> — vou propor um valor específico</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:.75rem; padding:.75rem 1rem;
+                       background:var(--bg); border:1px solid var(--border);
+                       border-radius:var(--radius-sm); cursor:pointer; font-size:.875rem;">
+          <input type="radio" name="valor_tipo" value="negotiate" id="v_neg" style="accent-color:var(--accent);" checked />
+          <span>🤝 <strong>Negociar</strong> — deixar em aberto para combinar</span>
+        </label>
       </div>
+
+      <div id="valor_fields" style="display:none;">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Valor</label>
+            <input class="form-input" type="number" id="offered_value_input" name="offered_value"
+                   step="0.01" min="0.01"
+                   placeholder="{% if dj.hourly_rate %}Sugerido: {{ dj.hourly_rate }}{% else %}Ex: 50.00{% endif %}" />
+            {% if dj.minimum_rate %}<div class="form-hint">Mínimo: {{ dj.minimum_rate | currency }} {{ dj.currency }}</div>{% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Moeda</label>
+            <select class="form-select" name="currency">
+              {% for c in ['USD','BRL','EUR'] %}
+                <option value="{{ c }}" {% if (dj.currency or 'USD') == c %}selected{% endif %}>{{ c }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        {% if dj.negotiable %}<div class="form-hint">✓ Este DJ aceita negociação</div>{% endif %}
+      </div>
+
+      <!-- Campo hidden para valor 0 (gratuito) ou null (negociar) -->
+      <input type="hidden" name="offered_value_free" id="offered_value_free" value="" />
     </div>
 
     <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
@@ -174,7 +198,6 @@ function atualizaDuracao() {
   const m = parseInt(document.getElementById('durM').value) || 0;
   const total = h * 60 + m;
   document.getElementById('durTotal').value = total || 60;
-
   let texto = '';
   if (h === 0 && m === 0)     texto = '1 hora (mínimo)';
   else if (h === 0)           texto = `${m} min`;
@@ -184,5 +207,33 @@ function atualizaDuracao() {
 }
 document.getElementById('durH').addEventListener('change', atualizaDuracao);
 document.getElementById('durM').addEventListener('change', atualizaDuracao);
+
+// Controle do tipo de valor
+const radios = document.querySelectorAll('input[name="valor_tipo"]');
+const valorFields = document.getElementById('valor_fields');
+const offeredInput = document.getElementById('offered_value_input');
+const freeInput = document.getElementById('offered_value_free');
+
+function updateValorFields() {
+  const tipo = document.querySelector('input[name="valor_tipo"]:checked')?.value;
+  valorFields.style.display = tipo === 'fixed' ? 'block' : 'none';
+  offeredInput.disabled = tipo !== 'fixed';
+  // Para gratuito: envia 0; para negociar: envia vazio (null); para fixed: usa o campo
+  if (tipo === 'free') {
+    offeredInput.name = '_offered_value_disabled';
+    freeInput.name = 'offered_value';
+    freeInput.value = '0';
+  } else if (tipo === 'negotiate') {
+    offeredInput.name = '_offered_value_disabled';
+    freeInput.name = 'offered_value';
+    freeInput.value = '';
+  } else {
+    offeredInput.name = 'offered_value';
+    freeInput.name = '_free_disabled';
+    freeInput.value = '';
+  }
+}
+radios.forEach(r => r.addEventListener('change', updateValorFields));
+updateValorFields();
 </script>
 {% endblock %}
