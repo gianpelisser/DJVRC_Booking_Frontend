@@ -37,7 +37,7 @@ def login_post():
 def register():
     if session.get("access_token"):
         return redirect(url_for("index"))
-    # Avatar do Google em URL no TOKEN
+    # Avatar do Google vem da sessão (URL muito longa para query string)
     oauth_prefill = session.pop("oauth_prefill", {})
     prefill = {
         "discord_id":           request.args.get("discord_id", ""),

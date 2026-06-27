@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base_app.html" %}
 {% block title %}Admin Dashboard — DJ VRC Booking{% endblock %}
 {% block content %}
 <div class="container" style="padding-top:2rem; padding-bottom:4rem;">
@@ -45,7 +45,7 @@
           <td style="text-align:right; font-weight:600;">{{ stats.users.djs or 0 }}</td>
         </tr>
         <tr style="border-bottom:1px solid var(--border);">
-          <td style="color:var(--muted); padding:.45rem 0;">Contratantes</td>
+          <td style="color:var(--muted); padding:.45rem 0;">Usuários</td>
           <td style="text-align:right; font-weight:600;">{{ stats.users.contractors or 0 }}</td>
         </tr>
         <tr style="border-bottom:1px solid var(--border);">
@@ -63,5 +63,6 @@
       </table>
     </div>
   </div>
+
 </div>
 {% endblock %}

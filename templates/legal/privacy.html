@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Política de Privacidade — DJ VRC Booking{% endblock %}
+{% block content %}
+<div class="container" style="max-width:760px; padding-top:3rem; padding-bottom:4rem;">
+  <h1 style="font-size:clamp(1.8rem,4vw,2.5rem); margin-bottom:.5rem;">POLÍTICA DE PRIVACIDADE</h1>
+  <p style="color:var(--muted); margin-bottom:3rem;">Última atualização: junho de 2026</p>
+
+  <div style="display:flex; flex-direction:column; gap:2rem; color:var(--text); line-height:1.8;">
+
+    <section>
+      <h2 style="font-size:1.1rem; color:var(--accent); margin-bottom:.75rem;">1. Quem somos</h2>
+      <p>O <strong>DJ VRC Booking</strong> é uma plataforma de contratação de DJs para eventos virtuais no VRChat, acessível em <a href="https://djvrcbooking.com" style="color:var(--accent);">djvrcbooking.com</a>. Ao usar nosso site, você concorda com esta política.</p>
+    </section>
+
+    <section>
+      <h2 style="font-size:1.1rem; color:var(--accent); margin-bottom:.75rem;">2. Dados que coletamos</h2>
+      <p>Coletamos apenas os dados necessários para o funcionamento da plataforma:</p>
+      <ul style="margin:.5rem 0 0 1.5rem; display:flex; flex-direction:column; gap:.35rem;">
+        <li><strong>Cadastro por e-mail:</strong> endereço de e-mail, nome de usuário e senha (armazenada em hash bcrypt)</li>
+        <li><strong>Login com Discord:</strong> ID numérico, nome de usuário, nome de exibição e avatar fornecidos pela API do Discord</li>
+        <li><strong>Login com Google:</strong> ID numérico, nome e foto de perfil fornecidos pela API do Google</li>
+        <li><strong>Perfil DJ:</strong> nome artístico, bio, redes sociais e preferências de notificação (informados voluntariamente)</li>
+        <li><strong>Bookings:</strong> dados do evento, data, horário e valor informados no pedido de contratação</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 style="font-size:1.1rem; color:var(--accent); margin-bottom:.75rem;">3. Como usamos seus dados</h2>
+      <ul style="margin:.5rem 0 0 1.5rem; display:flex; flex-direction:column; gap:.35rem;">
+        <li>Autenticar sua conta e manter sua sessão ativa</li>
+        <li>Enviar notificações sobre bookings via e-mail e/ou Discord</li>
+        <li>Exibir seu perfil público de DJ (apenas os dados que você escolheu compartilhar)</li>
+        <li>Melhorar a plataforma com base em uso agregado e anônimo</li>
+      </ul>
+      <p style="margin-top:.75rem;">Não vendemos, alugamos nem compartilhamos seus dados pessoais com terceiros para fins comerciais.</p>
+    </section>
+
+    <section>
+      <h2 style="font-size:1.1rem; color:var(--accent); margin-bottom:.75rem;">4. Integrações externas</h2>
+      <p>Usamos os seguintes serviços externos:</p>
+      <ul style="margin:.5rem 0 0 1.5rem; display:flex; flex-direction:column; gap:.35rem;">
+        <li><strong>Discord OAuth 2.0</strong> — para autenticação. Os dados recebidos são regidos pela <a href="https://discord.com/privacy" target="_blank" style="color:var(--accent);">Política de Privacidade do Discord</a></li>
+        <li><strong>Google OAuth 2.0</strong> — para autenticação. Os dados recebidos são regidos pela <a href="https://policies.google.com/privacy" target="_blank" style="color:var(--accent);">Política de Privacidade do Google</a></li>
+        <li><strong>Discord Bot API</strong> — para envio de mensagens diretas (DMs) mediante consentimento do usuário</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 style="font-size:1.1rem; color:var(--accent); margin-bottom:.75rem;">5. Seus direitos</h2>
+      <p>Você pode a qualquer momento:</p>
+      <ul style="margin:.5rem 0 0 1.5rem; display:flex; flex-direction:column; gap:.35rem;">
+        <li>Editar ou excluir dados do seu perfil</li>
+        <li>Desvincular contas do Discord e Google</li>
+        <li>Desativar notificações por Discord</li>
+        <li>Solicitar a exclusão completa da sua conta via <a href="mailto:support@djvrcbooking.com" style="color:var(--accent);">support@djvrcbooking.com</a></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 style="font-size:1.1rem; color:var(--accent); margin-bottom:.75rem;">6. Segurança</h2>
+      <p>Senhas são armazenadas com hash bcrypt. Tokens JWT com expiração são usados para autenticação. A comunicação é feita via HTTPS. Tomamos medidas razoáveis para proteger seus dados, mas nenhum sistema é 100% seguro.</p>
+    </section>
+
+    <section>
+      <h2 style="font-size:1.1rem; color:var(--accent); margin-bottom:.75rem;">7. Contato</h2>
+      <p>Dúvidas sobre privacidade: <a href="mailto:support@djvrcbooking.com" style="color:var(--accent);">support@djvrcbooking.com</a></p>
+    </section>
+
+  </div>
+</div>
+{% endblock %}

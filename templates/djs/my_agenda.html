@@ -1,0 +1,125 @@
+{% extends "base_app.html" %}
+{% block title %}Minha Agenda — DJ VRC Booking{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:2rem; padding-bottom:4rem;">
+
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:2rem; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <h1 style="font-size:clamp(1.5rem,4vw,2rem); margin-bottom:.2rem;">MINHA AGENDA</h1>
+      <p style="color:var(--muted);">Gerencie suas apresentações</p>
+    </div>
+    <a href="{{ url_for('djs.my_profile') }}" class="btn btn-ghost btn-sm">← Meu Perfil</a>
+  </div>
+
+  <!-- Formulário para adicionar evento -->
+  <div class="card" style="margin-bottom:2rem;">
+    <div class="card-title" style="margin-bottom:1.25rem;">➕ Adicionar evento externo</div>
+    <form method="post" action="{{ url_for('djs.add_agenda_entry') }}">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+        <div style="grid-column:1/-1;">
+          <label class="form-label">Nome do evento *</label>
+          <input class="form-input" type="text" name="event_name"
+                 placeholder="Ex: Live no VRChat — Clube X" required />
+        </div>
+        <div>
+          <label class="form-label">Data *</label>
+          <input class="form-input" type="date" name="event_date" required />
+        </div>
+        <div>
+          <label class="form-label">Horário *</label>
+          <input class="form-input" type="time" name="event_time" required />
+        </div>
+        <div>
+          <label class="form-label">Duração (minutos)</label>
+          <input class="form-input" type="number" name="duration_minutes" value="60" min="15" max="480" />
+        </div>
+        <div>
+          <label class="form-label">Plataforma</label>
+          <input class="form-input" type="text" name="platform" placeholder="Ex: VRChat, Twitch..." />
+        </div>
+        <div style="grid-column:1/-1;">
+          <label class="form-label">Descrição (opcional)</label>
+          <input class="form-input" type="text" name="description"
+                 placeholder="Breve descrição do evento" />
+        </div>
+        <div style="grid-column:1/-1; display:flex; align-items:center; gap:.5rem;">
+          <input type="checkbox" name="is_private" id="is_private"
+                 style="width:16px; height:16px;" />
+          <label for="is_private" style="font-size:.875rem; color:var(--muted); cursor:pointer;">
+            Evento privado (só você vê)
+          </label>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Adicionar à agenda</button>
+    </form>
+  </div>
+
+  <!-- Lista de eventos -->
+  {% if agenda %}
+    <div style="display:flex; flex-direction:column; gap:.5rem;">
+      {% for entry in agenda %}
+      <div style="display:flex; align-items:center; gap:1rem; padding:.85rem 1.25rem;
+                  background:var(--bg2); border:1px solid var(--border);
+                  border-radius:var(--radius-sm); flex-wrap:wrap;
+                  {% if entry.is_private %}opacity:.7;{% endif %}">
+
+        <!-- Data -->
+        <div style="text-align:center; min-width:44px; flex-shrink:0;">
+          <div style="font-size:.7rem; color:var(--muted);">
+            {{ entry.event_date[5:7] }}/{{ entry.event_date[:4] }}
+          </div>
+          <div style="font-size:1.2rem; font-weight:700; font-family:var(--font-d); color:var(--accent);">
+            {{ entry.event_date[8:10] }}
+          </div>
+        </div>
+
+        <!-- Info -->
+        <div style="flex:1; min-width:0;">
+          <div style="display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin-bottom:.15rem;">
+            <strong style="font-size:.9rem;">{{ entry.event_name }}</strong>
+            {% if entry.source == 'booking' %}
+              <span style="font-size:.65rem; color:var(--accent); border:1px solid var(--accent);
+                           border-radius:4px; padding:.1rem .4rem;">booking</span>
+            {% else %}
+              <span style="font-size:.65rem; color:var(--muted); border:1px solid var(--border);
+                           border-radius:4px; padding:.1rem .4rem;">externo</span>
+            {% endif %}
+            {% if entry.is_private %}
+              <span style="font-size:.65rem; color:var(--warning); border:1px solid var(--warning);
+                           border-radius:4px; padding:.1rem .4rem;">🔒 privado</span>
+            {% endif %}
+          </div>
+          <div style="font-size:.77rem; color:var(--muted); display:flex; gap:.75rem; flex-wrap:wrap;">
+            <span>{{ entry.event_time[:5] }}</span>
+            {% if entry.duration_minutes %}<span>{{ entry.duration_minutes }}min</span>{% endif %}
+            {% if entry.platform %}<span>{{ entry.platform }}</span>{% endif %}
+          </div>
+        </div>
+
+        <!-- Ações -->
+        <div style="display:flex; gap:.35rem; flex-shrink:0;">
+          <form method="post" action="{{ url_for('djs.toggle_agenda_privacy', entry_id=entry.id) }}">
+            <button class="btn btn-ghost btn-sm" title="{{ 'Tornar público' if entry.is_private else 'Tornar privado' }}">
+              {{ '👁' if entry.is_private else '🔒' }}
+            </button>
+          </form>
+          {% if entry.source == 'manual' %}
+            <form method="post" action="{{ url_for('djs.delete_agenda_entry', entry_id=entry.id) }}"
+                  onsubmit="return confirm('Remover este evento da agenda?')">
+              <button class="btn btn-danger btn-sm">✕</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty">
+      <div class="empty-icon">📅</div>
+      <h3>Nenhum evento na agenda</h3>
+      <p>Adicione eventos externos acima ou aceite bookings para que apareçam aqui.</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

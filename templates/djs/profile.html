@@ -52,6 +52,9 @@
       {% if dj.country %}<span>{{ dj.country }}</span>{% endif %}
       {% if dj.experience_years %}<span>{{ dj.experience_years }} anos de exp.</span>{% endif %}
       {% if dj.timezone %}<span>{{ dj.timezone }}</span>{% endif %}
+      {% if dj.social and dj.social.discord_username %}
+        <span style="color:var(--accent);">⬡ {{ dj.social.discord_username }}</span>
+      {% endif %}
     </div>
   </div>
 
@@ -89,6 +92,32 @@
         </div>
       {% endif %}
 
+      <!-- Disponibilidade -->
+      {% set weekdays = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'] %}
+      {% set avail_days = dj.availability | selectattr('weekday', 'ne', none) | list if dj.availability else [] %}
+      {% set blocked_dates = dj.availability | selectattr('blocked_date', 'ne', none) | list if dj.availability else [] %}
+      {% if avail_days %}
+        <div class="detail-section">
+          <div class="detail-label">Disponibilidade</div>
+          <div style="display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.5rem;">
+            {% for a in avail_days | sort(attribute='weekday') %}
+              <div style="background:var(--bg2); border:1px solid var(--border);
+                          border-radius:var(--radius-sm); padding:.3rem .75rem; font-size:.82rem;">
+                <span style="color:var(--text); font-weight:500;">{{ weekdays[a.weekday] }}</span>
+                {% if a.start_time and a.end_time %}
+                  <span style="color:var(--muted); margin-left:.35rem;">{{ a.start_time }} – {{ a.end_time }}</span>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+          {% if blocked_dates %}
+            <div style="margin-top:.5rem; font-size:.78rem; color:var(--muted);">
+              🚫 Datas bloqueadas: {{ blocked_dates | map(attribute='blocked_date') | join(', ') }}
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+
       <!-- Links sociais -->
       {% set has_social = dj.social and (dj.social.twitch or dj.social.youtube or dj.social.website or dj.social.discord) %}
       {% if has_social %}
@@ -110,10 +139,14 @@
                 🌐 Website → {{ dj.social.website }}
               </a>
             {% endif %}
-            {% if dj.social.discord %}
-              <span style="color:var(--muted); font-size:.875rem;">
-                💬 Discord: {{ dj.social.discord }}
-              </span>
+            {% if dj.social.discord_username %}
+              <div style="display:flex; align-items:center; gap:.5rem; color:var(--muted); font-size:.875rem;">
+                <span>💬 Discord:</span>
+                <code style="background:var(--bg); padding:.15rem .5rem; border-radius:4px;
+                             font-size:.85rem; color:var(--accent); user-select:all;">{{ dj.social.discord_username }}</code>
+              </div>
+            {% elif dj.social.discord %}
+              <span style="color:var(--muted); font-size:.875rem;">💬 {{ dj.social.discord }}</span>
             {% endif %}
           </div>
         </div>

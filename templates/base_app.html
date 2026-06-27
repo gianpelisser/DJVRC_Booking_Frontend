@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}DJ VRC Booking{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}"/>
+  {% block head %}{% endblock %}
+</head>
+<body class="app-body">
+
+<!-- ── TOPBAR ──────────────────────────────────────────────────────── -->
+<header class="app-topbar">
+  <div class="app-topbar-left">
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <a href="{{ url_for('index') }}" class="app-logo">DJ<span>VRC</span></a>
+  </div>
+
+  <div class="app-topbar-right">
+    <!-- Notificações -->
+    <a href="{{ url_for('notifications.list_notifications', unread='1') }}"
+       class="topbar-icon" title="Notificações">
+      🔔
+      {% if unread_notif_count and unread_notif_count > 0 %}
+        <span class="notif-badge">{{ unread_notif_count if unread_notif_count < 10 else '9+' }}</span>
+      {% endif %}
+    </a>
+
+    <!-- Avatar + dropdown -->
+    <div class="topbar-user" id="userDropdownToggle">
+      <div class="topbar-avatar">
+        {% if current_user and current_user.discord_id and current_user.discord_avatar %}
+          <img src="https://cdn.discordapp.com/avatars/{{ current_user.discord_id }}/{{ current_user.discord_avatar }}.png"
+               onerror="this.style.display='none'" />
+        {% elif current_user and current_user.google_avatar %}
+          <img src="{{ current_user.google_avatar }}" onerror="this.style.display='none'" />
+        {% else %}
+          {{ (current_user.username[0] if current_user else 'U').upper() }}
+        {% endif %}
+      </div>
+      <div class="topbar-user-info">
+        <span class="topbar-username">{{ current_user.username if current_user else '' }}</span>
+        <span class="topbar-role">
+          {% if current_user and current_user.is_dj %}DJ & Usuário{% else %}Usuário{% endif %}
+        </span>
+      </div>
+      <span class="topbar-chevron">▾</span>
+
+      <div class="topbar-dropdown" id="userDropdown">
+        <a href="{{ url_for('account.dashboard') }}">⚙ Minha Conta</a>
+        {% if current_user and current_user.is_dj %}
+          <a href="{{ url_for('djs.my_profile') }}">🎧 Meu Perfil DJ</a>
+          <a href="{{ url_for('djs.my_agenda') }}">📅 Minha Agenda</a>
+        {% endif %}
+        {% if current_user and current_user.role == 'admin' %}
+          <a href="{{ url_for('admin.dashboard') }}">🛡 Admin</a>
+        {% endif %}
+        <div class="dropdown-divider"></div>
+        <a href="{{ url_for('index') }}" target="_blank">🌐 Página Inicial</a>
+        <div class="dropdown-divider"></div>
+        <form action="{{ url_for('auth.logout') }}" method="post">
+          <button type="submit" class="dropdown-logout">Sair</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ── SIDEBAR ─────────────────────────────────────────────────────── -->
+<aside class="app-sidebar" id="appSidebar">
+  <nav class="sidebar-nav">
+
+    <div class="sidebar-section-label">Principal</div>
+    <a href="{{ url_for('index') }}" class="sidebar-link {% if request.endpoint == 'index' %}active{% endif %}">
+      <span class="sidebar-icon">⌂</span> Início
+    </a>
+    <a href="{{ url_for('djs.list_djs') }}"
+       class="sidebar-link {% if request.blueprint == 'djs' and request.endpoint not in ['djs.my_profile', 'djs.my_agenda', 'djs.availability', 'djs.edit_profile'] %}active{% endif %}">
+      <span class="sidebar-icon">🎧</span> Explorar DJs
+    </a>
+
+    <div class="sidebar-section-label">Meus bookings</div>
+    <a href="{{ url_for('bookings.list_bookings') }}"
+       class="sidebar-link {% if request.blueprint == 'bookings' %}active{% endif %}">
+      <span class="sidebar-icon">📋</span> Bookings
+      {% if pending_bookings_count and pending_bookings_count > 0 %}
+        <span class="sidebar-badge">{{ pending_bookings_count }}</span>
+      {% endif %}
+    </a>
+
+    {% if current_user and current_user.is_dj %}
+    <div class="sidebar-section-label">Área DJ</div>
+    <a href="{{ url_for('djs.my_profile') }}"
+       class="sidebar-link {% if request.endpoint in ['djs.my_profile', 'djs.edit_profile'] %}active{% endif %}">
+      <span class="sidebar-icon">🎤</span> Meu Perfil
+    </a>
+    <a href="{{ url_for('djs.my_agenda') }}"
+       class="sidebar-link {% if request.endpoint == 'djs.my_agenda' %}active{% endif %}">
+      <span class="sidebar-icon">📅</span> Minha Agenda
+    </a>
+    <a href="{{ url_for('djs.availability') }}"
+       class="sidebar-link {% if request.endpoint == 'djs.availability' %}active{% endif %}">
+      <span class="sidebar-icon">🕐</span> Disponibilidade
+    </a>
+    {% endif %}
+
+    <div class="sidebar-section-label">Conta</div>
+    <a href="{{ url_for('account.dashboard') }}"
+       class="sidebar-link {% if request.blueprint == 'account' %}active{% endif %}">
+      <span class="sidebar-icon">⚙</span> Configurações
+    </a>
+    <a href="{{ url_for('notifications.list_notifications') }}"
+       class="sidebar-link {% if request.blueprint == 'notifications' %}active{% endif %}">
+      <span class="sidebar-icon">🔔</span> Notificações
+      {% if unread_notif_count and unread_notif_count > 0 %}
+        <span class="sidebar-badge">{{ unread_notif_count }}</span>
+      {% endif %}
+    </a>
+
+    {% if current_user and current_user.role == 'admin' %}
+    <div class="sidebar-section-label">Administração</div>
+    <a href="{{ url_for('admin.dashboard') }}"
+       class="sidebar-link {% if request.blueprint == 'admin' %}active{% endif %}">
+      <span class="sidebar-icon">🛡</span> Painel Admin
+    </a>
+    {% endif %}
+
+  </nav>
+
+  <div class="sidebar-footer">
+    <a href="{{ url_for('auth.contact') }}" class="sidebar-link">
+      <span class="sidebar-icon">✉</span> Suporte
+    </a>
+    <form action="{{ url_for('auth.logout') }}" method="post">
+      <button type="submit" class="sidebar-link sidebar-logout">
+        <span class="sidebar-icon">⎋</span> Sair
+      </button>
+    </form>
+  </div>
+</aside>
+
+<!-- ── OVERLAY (mobile) ────────────────────────────────────────────── -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ── FLASH MESSAGES ──────────────────────────────────────────────── -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="app-flash-container">
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">
+          <span>{{ message }}</span>
+          <button class="flash-close" onclick="this.parentElement.remove()">✕</button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<!-- ── MAIN CONTENT ────────────────────────────────────────────────── -->
+<main class="app-main">
+  <div class="app-content">
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+// Sidebar toggle
+const sidebar   = document.getElementById('appSidebar');
+const overlay   = document.getElementById('sidebarOverlay');
+const toggleBtn = document.getElementById('sidebarToggle');
+
+function openSidebar() {
+  sidebar.classList.add('open');
+  overlay.classList.add('show');
+  document.body.classList.add('sidebar-open');
+}
+function closeSidebar() {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+  document.body.classList.remove('sidebar-open');
+}
+toggleBtn.addEventListener('click', () =>
+  sidebar.classList.contains('open') ? closeSidebar() : openSidebar()
+);
+overlay.addEventListener('click', closeSidebar);
+
+// User dropdown
+const dropdownToggle = document.getElementById('userDropdownToggle');
+const dropdown = document.getElementById('userDropdown');
+dropdownToggle.addEventListener('click', (e) => {
+  e.stopPropagation();
+  dropdown.classList.toggle('show');
+});
+document.addEventListener('click', () => dropdown.classList.remove('show'));
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

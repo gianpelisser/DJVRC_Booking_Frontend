@@ -44,7 +44,7 @@
                  onerror="this.style.display='none'" />
           {% endif %}
           <span class="nav-username">{{ current_user.username if current_user else '' }}</span>
-          <span class="badge badge-contractor" style="font-size:.65rem;">Usuário</span>
+          <span class="badge badge-user" style="font-size:.65rem;">Usuário</span>
           {% if current_user and current_user.is_dj %}
             <span class="badge badge-dj" style="font-size:.65rem;">DJ</span>
           {% endif %}

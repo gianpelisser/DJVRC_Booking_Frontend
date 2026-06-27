@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Agenda — {{ dj.artist_name }} — DJ VRC Booking{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:2rem; padding-bottom:4rem; max-width:700px;">
+
+  <div style="display:flex; align-items:center; gap:1rem; margin-bottom:2rem;">
+    {% if dj.avatar_url %}
+      <div style="width:48px; height:48px; border-radius:50%;
+                  background-image:url('{{ dj.avatar_url }}');
+                  background-size:cover; background-position:center; flex-shrink:0;"></div>
+    {% endif %}
+    <div>
+      <h1 style="font-size:clamp(1.3rem,3vw,1.8rem); margin-bottom:.1rem;">
+        AGENDA — {{ dj.artist_name }}
+      </h1>
+      <p style="color:var(--muted); font-size:.85rem;">Próximas apresentações</p>
+    </div>
+    <a href="{{ url_for('djs.profile', dj_id=dj.id) }}"
+       class="btn btn-ghost btn-sm" style="margin-left:auto;">← Voltar ao perfil</a>
+  </div>
+
+  {% if agenda %}
+    <div style="display:flex; flex-direction:column; gap:.75rem;">
+      {% for entry in agenda %}
+      <div style="display:flex; gap:1.25rem; padding:1rem 1.25rem;
+                  background:var(--bg2); border:1px solid var(--border);
+                  border-radius:var(--radius-sm); align-items:flex-start;">
+
+        <!-- Data -->
+        <div style="text-align:center; min-width:48px; flex-shrink:0;">
+          <div style="font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px;">
+            {% set months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'] %}
+            {{ months[entry.event_date[5:7]|int - 1] }}
+          </div>
+          <div style="font-size:1.6rem; font-weight:800; font-family:var(--font-d);
+                      color:var(--accent); line-height:1;">
+            {{ entry.event_date[8:10] }}
+          </div>
+          <div style="font-size:.7rem; color:var(--muted);">{{ entry.event_date[:4] }}</div>
+        </div>
+
+        <!-- Info -->
+        <div style="flex:1; min-width:0;">
+          <div style="display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin-bottom:.25rem;">
+            <strong style="font-size:.95rem;">{{ entry.event_name }}</strong>
+            {% if entry.source == 'booking' %}
+              <span style="font-size:.65rem; color:var(--accent); border:1px solid var(--accent);
+                           border-radius:4px; padding:.1rem .4rem;">booking</span>
+            {% else %}
+              <span style="font-size:.65rem; color:var(--muted); border:1px solid var(--border);
+                           border-radius:4px; padding:.1rem .4rem;">externo</span>
+            {% endif %}
+          </div>
+          <div style="font-size:.8rem; color:var(--muted); display:flex; gap:1rem; flex-wrap:wrap;">
+            <span>🕐 {{ entry.event_time[:5] }}</span>
+            {% if entry.duration_minutes %}<span>⏱ {{ entry.duration_minutes }}min</span>{% endif %}
+            {% if entry.platform %}<span>🎮 {{ entry.platform }}</span>{% endif %}
+          </div>
+          {% if entry.description %}
+            <p style="font-size:.82rem; color:var(--muted); margin-top:.4rem; margin-bottom:0;">
+              {{ entry.description }}
+            </p>
+          {% endif %}
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty">
+      <div class="empty-icon">📅</div>
+      <h3>Nenhuma apresentação agendada</h3>
+      <p>Verifique mais tarde!</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
