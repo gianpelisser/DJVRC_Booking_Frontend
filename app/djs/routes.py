@@ -26,19 +26,40 @@ def list_djs():
 
 @djs_bp.get("/<int:dj_id>")
 def profile(dj_id):
-    # Tenta endpoint público primeiro, se falhar tenta o autenticado (dono do perfil)
     data = api_get(f"/djs/{dj_id}")
     if not data or not data.get("success"):
-        # Pode ser que o perfil não esteja aprovado ainda — tenta buscar pelo /djs/me
-        # e comparar o id (só funciona se for o dono logado)
         me_data = api_get("/djs/me")
         if me_data and me_data.get("success"):
             dj = me_data.get("data", {})
             if dj.get("id") == dj_id:
-                return render_template("djs/profile.html", dj=dj, is_owner=True, pending=not dj.get("is_approved"))
+                agenda_data = api_get(f"/djs/{dj_id}/agenda")
+                agenda = agenda_data.get("data", []) if agenda_data and agenda_data.get("success") else []
+                return render_template("djs/profile.html", dj=dj, is_owner=True,
+                                       pending=not dj.get("is_approved"), agenda=agenda,
+                                       is_logged_in=bool(session.get("access_token")),
+                                       current_user=session.get("user"))
         flash("DJ nao encontrado.", "danger")
         return redirect(url_for("djs.list_djs"))
-    return render_template("djs/profile.html", dj=data.get("data", {}), is_owner=False)
+
+    dj = data.get("data", {})
+    agenda_data = api_get(f"/djs/{dj_id}/agenda")
+    agenda = agenda_data.get("data", []) if agenda_data and agenda_data.get("success") else []
+    return render_template("djs/profile.html", dj=dj, is_owner=False, agenda=agenda,
+                           is_logged_in=bool(session.get("access_token")),
+                           current_user=session.get("user"))
+
+
+@djs_bp.get("/<int:dj_id>/agenda")
+def dj_agenda(dj_id):
+    """Página de agenda completa do DJ."""
+    dj_data = api_get(f"/djs/{dj_id}")
+    if not dj_data or not dj_data.get("success"):
+        flash("DJ não encontrado.", "danger")
+        return redirect(url_for("djs.list_djs"))
+    dj = dj_data["data"]
+    agenda_data = api_get(f"/djs/{dj_id}/agenda")
+    agenda = agenda_data.get("data", []) if agenda_data and agenda_data.get("success") else []
+    return render_template("djs/agenda.html", dj=dj, agenda=agenda)
 
 
 @djs_bp.get("/me/public")
@@ -173,3 +194,63 @@ def availability_post():
     else:
         flash("Erro ao atualizar disponibilidade.", "danger")
     return redirect(url_for("djs.availability"))
+
+
+# ─── Minha Agenda (DJ logado) ─────────────────────────────────────────────────
+
+@djs_bp.get("/me/agenda")
+@dj_required
+def my_agenda():
+    """Página de gerenciamento da agenda do DJ."""
+    data = api_get("/djs/me/agenda")
+    agenda = data.get("data", []) if data and data.get("success") else []
+    return render_template("djs/my_agenda.html", agenda=agenda)
+
+
+@djs_bp.post("/me/agenda")
+@dj_required
+def add_agenda_entry():
+    form = request.form
+    payload = {
+        "event_name":       form.get("event_name", "").strip(),
+        "event_date":       form.get("event_date", ""),
+        "event_time":       form.get("event_time", ""),
+        "duration_minutes": int(form.get("duration_minutes", 60) or 60),
+        "platform":         form.get("platform", "").strip() or None,
+        "description":      form.get("description", "").strip() or None,
+        "is_private":       bool(form.get("is_private")),
+    }
+    data, status = api_post("/djs/me/agenda", payload)
+    if status in (200, 201) and data and data.get("success"):
+        flash("Evento adicionado à agenda!", "success")
+    else:
+        msg = data.get("message", "Erro ao adicionar.") if data else "Erro de conexão."
+        flash(msg, "danger")
+    return redirect(url_for("djs.my_agenda"))
+
+
+@djs_bp.post("/me/agenda/<int:entry_id>/delete")
+@dj_required
+def delete_agenda_entry(entry_id):
+    from app.core.api import api_delete
+    data, status = api_delete(f"/djs/me/agenda/{entry_id}")
+    if status == 200:
+        flash("Evento removido.", "success")
+    else:
+        msg = data.get("message", "Erro ao remover.") if data else "Erro de conexão."
+        flash(msg, "danger")
+    return redirect(url_for("djs.my_agenda"))
+
+
+@djs_bp.post("/me/agenda/<int:entry_id>/toggle-private")
+@dj_required
+def toggle_agenda_privacy(entry_id):
+    from app.core.api import api_put
+    # Busca estado atual e inverte
+    data = api_get("/djs/me/agenda")
+    entries = data.get("data", []) if data and data.get("success") else []
+    entry = next((e for e in entries if e["id"] == entry_id), None)
+    is_private = not entry.get("is_private", False) if entry else True
+    api_put(f"/djs/me/agenda/{entry_id}", {"is_private": is_private})
+    flash("Visibilidade alterada.", "success")
+    return redirect(url_for("djs.my_agenda"))
