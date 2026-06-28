@@ -78,29 +78,16 @@ def activate_dj():
 @account_bp.post("/notifications")
 @login_required
 def update_notifications():
-    """Atualiza preferências de notificação — usuário comum e/ou perfil DJ."""
+    """Atualiza preferências de notificação Discord."""
     form = request.form
-    user = session.get("user", {})
-
-    # Preferências do usuário comum (Discord DM/webhook da conta)
-    user_payload = {
+    payload = {
         "notify_discord_dm":      form.get("notify_discord_dm") == "on",
         "notify_discord_webhook": form.get("notify_discord_webhook") == "on",
         "webhook_url":            form.get("webhook_url", "").strip() or None,
     }
-    data, status = api_put("/auth/notifications", user_payload)
+    data, status = api_put("/auth/notifications", payload)
     if status == 200 and data and data.get("success"):
         session["user"] = data["data"]
-
-    # Se for DJ, atualiza também as preferências do perfil DJ
-    if user.get("is_dj"):
-        dj_payload = {
-            "notify_dm":      form.get("notify_dm") == "on",
-            "notify_webhook": form.get("notify_webhook") == "on",
-            "webhook_url":    form.get("dj_webhook_url", "").strip() or None,
-        }
-        api_put("/djs/me", dj_payload)
-
     flash("Preferências de notificação salvas!", "success")
     return redirect(url_for("account.dashboard"))
 

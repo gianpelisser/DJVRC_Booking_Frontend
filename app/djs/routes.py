@@ -130,9 +130,6 @@ def my_profile_post():
         "avatar_url":              form.get("avatar_url", "").strip() or None,
         "banner_url":              form.get("banner_url", "").strip() or None,
         "logo_url":                form.get("logo_url", "").strip() or None,
-        "notify_dm":               form.get("notify_dm") == "on",
-        "notify_webhook":          form.get("notify_webhook") == "on",
-        "webhook_url":             form.get("webhook_url", "").strip() or None,
         "genre_ids":               genre_ids,
         "presentation_format_ids": format_ids,
     }
