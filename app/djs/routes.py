@@ -210,7 +210,10 @@ def my_agenda():
     """Página de gerenciamento da agenda do DJ."""
     data = api_get("/djs/me/agenda")
     agenda = data.get("data", []) if data and data.get("success") else []
-    return render_template("djs/my_agenda.html", agenda=agenda)
+    # Busca o id do perfil para link para agenda pública
+    profile_data = api_get("/djs/me")
+    dj_id = profile_data["data"]["id"] if profile_data and profile_data.get("success") else None
+    return render_template("djs/my_agenda.html", agenda=agenda, dj_id=dj_id)
 
 
 @djs_bp.post("/me/agenda")

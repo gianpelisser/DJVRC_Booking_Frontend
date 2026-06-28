@@ -9,6 +9,11 @@
       <p style="color:var(--muted);">Gerencie suas apresentações</p>
     </div>
     <a href="{{ url_for('djs.my_profile') }}" class="btn btn-ghost btn-sm">← Meu Perfil</a>
+    {% if dj_id %}
+      <a href="{{ url_for('djs.dj_agenda', dj_id=dj_id) }}" class="btn btn-ghost btn-sm" target="_blank">
+        👁 Ver agenda pública
+      </a>
+    {% endif %}
   </div>
 
   <!-- Formulário para adicionar evento -->
