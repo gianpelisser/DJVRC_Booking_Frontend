@@ -397,10 +397,15 @@
       </div>
     </div>
 
-    <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+    <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
       <button type="submit" class="btn btn-primary btn-lg">Salvar perfil</button>
-      <a href="{{ url_for('djs.availability') }}" class="btn btn-ghost">Disponibilidade →</a>
-      <a href="{{ url_for('djs.my_agenda') }}" class="btn btn-ghost">📅 Minha Agenda →</a>
+      <a href="{{ url_for('djs.availability') }}" class="btn btn-ghost">🕐 Disponibilidade</a>
+      <a href="{{ url_for('djs.my_agenda') }}" class="btn btn-ghost">📅 Minha Agenda</a>
+      {% if profile.id %}
+        <a href="{{ url_for('djs.profile', dj_id=profile.id) }}" class="btn btn-ghost" target="_blank">
+          👁 Ver perfil público
+        </a>
+      {% endif %}
     </div>
   </form>
 </div>
