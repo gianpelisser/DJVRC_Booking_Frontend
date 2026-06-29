@@ -47,7 +47,10 @@ def new_booking(dj_id):
         flash("DJ não encontrado.", "danger")
         return redirect(url_for("djs.list_djs"))
 
-    return render_template("bookings/new.html", dj=dj_data.get("data", {}))
+    groups_data = api_get("/groups/")
+    groups = groups_data.get("data", []) if groups_data and groups_data.get("success") else []
+
+    return render_template("bookings/new.html", dj=dj_data.get("data", {}), groups=groups)
 
 
 @bookings_bp.post("/new/<int:dj_id>")
@@ -62,15 +65,16 @@ def new_booking_post(dj_id):
         dur_total = int(form.get("duration_minutes", 60) or 60)  # fallback
 
     payload = {
-        "dj_profile_id": dj_id,
-        "event_name": form.get("event_name"),
-        "event_date": form.get("event_date"),
-        "event_time": form.get("event_time"),
+        "dj_profile_id":   dj_id,
+        "event_name":      form.get("event_name"),
+        "event_date":      form.get("event_date"),
+        "event_time":      form.get("event_time"),
         "duration_minutes": dur_total,
-        "platform": form.get("platform"),
-        "offered_value": form.get("offered_value") or None,
-        "currency": form.get("currency", "USD"),
-        "description": form.get("description"),
+        "platform":        form.get("platform"),
+        "offered_value":   form.get("offered_value") or None,
+        "currency":        form.get("currency", "USD"),
+        "description":     form.get("description"),
+        "group_id":        int(form.get("group_id")) if form.get("group_id") else None,
     }
 
     data, status = api_post("/bookings/", payload)
@@ -81,8 +85,10 @@ def new_booking_post(dj_id):
     msg = data.get("message", "Erro ao enviar proposta.") if data else "Erro de conexão."
     flash(msg, "danger")
 
-    dj_data = api_get(f"/djs/{dj_id}")
-    return render_template("bookings/new.html", dj=dj_data.get("data", {}) if dj_data else {})
+    dj_data   = api_get(f"/djs/{dj_id}")
+    grps_data = api_get("/groups/")
+    groups    = grps_data.get("data", []) if grps_data and grps_data.get("success") else []
+    return render_template("bookings/new.html", dj=dj_data.get("data", {}) if dj_data else {}, groups=groups)
 
 
 @bookings_bp.post("/<int:booking_id>/accept")

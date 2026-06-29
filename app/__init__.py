@@ -9,6 +9,7 @@ def create_app(config_name: str = "development") -> Flask:
     # Blueprints
     from .auth.routes import auth_bp
     from .notifications.routes import notifications_bp
+    from .groups.routes import groups_bp
     from .djs.routes import djs_bp
     from .bookings.routes import bookings_bp
     from .events.routes import events_bp
@@ -22,6 +23,7 @@ def create_app(config_name: str = "development") -> Flask:
     app.register_blueprint(admin_bp,    url_prefix="/admin")
     app.register_blueprint(account_bp,       url_prefix="/account")
     app.register_blueprint(notifications_bp,  url_prefix="/notifications")
+    app.register_blueprint(groups_bp,          url_prefix="/groups")
 
     # Context processors e filtros globais
     from .core.context import register_context

@@ -115,6 +115,10 @@
        class="sidebar-link {% if request.blueprint == 'account' %}active{% endif %}">
       <span class="sidebar-icon">⚙</span> Configurações
     </a>
+    <a href="{{ url_for('groups.list_groups') }}"
+       class="sidebar-link {% if request.blueprint == 'groups' %}active{% endif %}">
+      <span class="sidebar-icon">👥</span> Meus Grupos
+    </a>
     <a href="{{ url_for('notifications.list_notifications') }}"
        class="sidebar-link {% if request.blueprint == 'notifications' %}active{% endif %}">
       <span class="sidebar-icon">🔔</span> Notificações
