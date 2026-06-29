@@ -59,13 +59,24 @@
         </div>
       </div>
       <div class="form-group">
+        <label class="form-label">Apelido
+          <span style="color:var(--muted); font-weight:300;">(nome exibido ao contratar DJs, quando nenhum grupo for selecionado)</span>
+        </label>
+        <input class="form-input" type="text" name="display_name"
+               value="{{ user.display_name or '' }}"
+               placeholder="Ex: Vortex, Neon Club..." />
+      </div>
+      <div class="form-group">
         <label class="form-label">Nova senha
           <span style="color:var(--muted); font-weight:300;">(deixe em branco para manter)</span>
         </label>
         <input class="form-input" type="password" name="password"
                placeholder="mínimo 8 caracteres" minlength="8" />
       </div>
-      <button type="submit" class="btn btn-primary">Salvar alterações</button>
+      <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+        <button type="submit" class="btn btn-primary">Salvar alterações</button>
+        <a href="{{ url_for('groups.list_groups') }}" class="btn btn-ghost btn-sm">👥 Meus Grupos →</a>
+      </div>
     </form>
   </div>
 
@@ -212,6 +223,41 @@
       </div>
       <button type="submit" class="btn btn-primary btn-sm">Salvar preferências</button>
     </form>
+
+    {% if user.is_dj %}
+    <hr class="divider-line" style="margin:1.25rem 0;" />
+    <div style="font-size:.7rem; color:var(--muted); letter-spacing:.08em; text-transform:uppercase;
+                font-weight:600; margin-bottom:.75rem;">Webhook da Agenda (DJ)</div>
+    <p style="font-size:.82rem; color:var(--muted); margin-bottom:.75rem;">
+      Quando ativo, bookings aceitos e eventos adicionados manualmente são postados
+      automaticamente em um canal do seu servidor Discord.
+    </p>
+    <form method="post" action="{{ url_for('djs.save_agenda_webhook') }}">
+      <label style="display:flex; align-items:center; gap:.75rem; cursor:pointer;
+                    padding:.75rem 1rem; background:var(--bg3); border-radius:var(--radius-sm);
+                    border:1px solid var(--border); margin-bottom:.75rem;">
+        <input type="checkbox" name="notify_webhook" id="agendaWhCb"
+               {% if user.notify_discord_webhook %}checked{% endif %}
+               style="accent-color:var(--accent);"
+               onchange="document.getElementById('agendaWhField').style.display=this.checked?'block':'none'" />
+        <div>
+          <div style="font-weight:500; font-size:.875rem;">Publicar agenda no Webhook</div>
+          <div style="font-size:.78rem; color:var(--muted);">Posta eventos automaticamente no canal configurado.</div>
+        </div>
+      </label>
+      <div id="agendaWhField"
+           style="display:{% if user.notify_discord_webhook %}block{% else %}none{% endif %}; margin-bottom:.75rem;">
+        <input class="form-input" type="url" name="webhook_url"
+               value="{{ user.webhook_url or '' }}"
+               placeholder="https://discord.com/api/webhooks/..." />
+        <div style="font-size:.73rem; color:var(--muted); margin-top:.3rem;">
+          Canal → ⚙ Configurações → Integrações → Webhooks → Novo Webhook → Copiar URL.
+        </div>
+      </div>
+      <button type="submit" class="btn btn-ghost btn-sm">Salvar webhook da agenda</button>
+    </form>
+    {% endif %}
+
   </div>
   {% elif not user.discord_id %}
   <div class="card mb-3" style="border-color:rgba(88,101,242,.2);">

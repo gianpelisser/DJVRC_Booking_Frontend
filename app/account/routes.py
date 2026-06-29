@@ -27,13 +27,14 @@ def dashboard():
 @account_bp.post("/update")
 @login_required
 def update():
-    """Atualiza username, e-mail ou senha."""
+    """Atualiza username, e-mail, apelido ou senha."""
     form     = request.form
     payload  = {}
 
-    username = form.get("username", "").strip()
-    email    = form.get("email", "").strip()
-    password = form.get("password", "").strip()
+    username     = form.get("username", "").strip()
+    email        = form.get("email", "").strip()
+    password     = form.get("password", "").strip()
+    display_name = form.get("display_name", "").strip()
 
     if username:
         payload["username"] = username
@@ -41,6 +42,8 @@ def update():
         payload["email"] = email
     if password:
         payload["password"] = password
+    # display_name pode ser vazio (limpar apelido)
+    payload["display_name"] = display_name or None
 
     if not payload:
         flash("Nenhuma alteracao enviada.", "warning")
