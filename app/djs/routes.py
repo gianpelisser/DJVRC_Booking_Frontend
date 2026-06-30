@@ -268,17 +268,15 @@ def toggle_agenda_privacy(entry_id):
 @djs_bp.post("/me/agenda/webhook")
 @dj_required
 def save_agenda_webhook():
-    """Salva configuração de webhook da agenda do DJ."""
-    from app.core.api import api_put
+    """Salva configuração de webhook da agenda — fica no perfil DJ, separado do webhook de notificações."""
     form = request.form
     payload = {
-        "notify_discord_webhook": form.get("notify_webhook") == "on",
-        "webhook_url":            form.get("webhook_url", "").strip() or None,
+        "notify_webhook": form.get("notify_webhook") == "on",
+        "webhook_url":    form.get("webhook_url", "").strip() or None,
     }
-    data, status = api_put("/auth/notifications", payload)
+    data, status = api_put("/djs/me", payload)
     if status == 200 and data and data.get("success"):
-        session["user"] = data["data"]
         flash("Webhook da agenda salvo!", "success")
     else:
         flash("Erro ao salvar webhook.", "danger")
-    return redirect(url_for("djs.my_agenda"))
+    return redirect(request.referrer or url_for("account.dashboard"))

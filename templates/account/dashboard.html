@@ -217,6 +217,9 @@
               <input class="form-input" type="url" name="webhook_url"
                      value="{{ user.webhook_url or '' }}"
                      placeholder="https://discord.com/api/webhooks/..." />
+              <div style="font-size:.73rem; color:var(--muted); margin-top:.3rem;">
+                Canal → ⚙ Configurações → Integrações → Webhooks → Novo Webhook → Copiar URL.
+              </div>
             </div>
           </div>
         </label>
@@ -224,7 +227,7 @@
       <button type="submit" class="btn btn-primary btn-sm">Salvar preferências</button>
     </form>
 
-    {% if user.is_dj %}
+    {% if user.is_dj and dj_profile %}
     <hr class="divider-line" style="margin:1.25rem 0;" />
     <div style="font-size:.7rem; color:var(--muted); letter-spacing:.08em; text-transform:uppercase;
                 font-weight:600; margin-bottom:.75rem;">Webhook da Agenda (DJ)</div>
@@ -237,7 +240,7 @@
                     padding:.75rem 1rem; background:var(--bg3); border-radius:var(--radius-sm);
                     border:1px solid var(--border); margin-bottom:.75rem;">
         <input type="checkbox" name="notify_webhook" id="agendaWhCb"
-               {% if user.notify_discord_webhook %}checked{% endif %}
+               {% if dj_profile.notify_webhook %}checked{% endif %}
                style="accent-color:var(--accent);"
                onchange="document.getElementById('agendaWhField').style.display=this.checked?'block':'none'" />
         <div>
@@ -246,9 +249,9 @@
         </div>
       </label>
       <div id="agendaWhField"
-           style="display:{% if user.notify_discord_webhook %}block{% else %}none{% endif %}; margin-bottom:.75rem;">
+           style="display:{% if dj_profile.notify_webhook %}block{% else %}none{% endif %}; margin-bottom:.75rem;">
         <input class="form-input" type="url" name="webhook_url"
-               value="{{ user.webhook_url or '' }}"
+               value="{{ dj_profile.webhook_url or '' }}"
                placeholder="https://discord.com/api/webhooks/..." />
         <div style="font-size:.73rem; color:var(--muted); margin-top:.3rem;">
           Canal → ⚙ Configurações → Integrações → Webhooks → Novo Webhook → Copiar URL.
