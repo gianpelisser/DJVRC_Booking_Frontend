@@ -1,0 +1,52 @@
+{# Seletor de duração reutilizável — Horas (0-12) + Minutos (00/15/30/45)
+   Parâmetros esperados no contexto:
+   - dur_id_prefix: prefixo para os IDs (ex: 'dur', 'edur_0') — opcional, default 'dur'
+   - dur_hours: valor inicial de horas (int) — opcional, default 1
+   - dur_minutes: valor inicial de minutos extras (int) — opcional, default 0
+   - dur_name_hours / dur_name_minutes / dur_name_total: nomes dos campos de form
+#}
+{% set _prefix = dur_id_prefix | default('dur') %}
+{% set _h = dur_hours | default(1) %}
+{% set _m = dur_minutes | default(0) %}
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem;">
+  <div>
+    <label class="form-label" style="font-size:.72rem;">Horas</label>
+    <select class="form-select dur-hours" id="{{ _prefix }}H" name="{{ dur_name_hours | default('duration_hours') }}">
+      {% for h in range(0, 13) %}
+        <option value="{{ h }}" {% if h == _h %}selected{% endif %}>{{ h }}h</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label class="form-label" style="font-size:.72rem;">Minutos</label>
+    <select class="form-select dur-minutes" id="{{ _prefix }}M" name="{{ dur_name_minutes | default('duration_minutes_extra') }}">
+      {% for m in [0, 15, 30, 45] %}
+        <option value="{{ m }}" {% if m == _m %}selected{% endif %}>{{ '%02d'|format(m) }} min</option>
+      {% endfor %}
+    </select>
+  </div>
+</div>
+<input type="hidden" id="{{ _prefix }}Total" name="{{ dur_name_total | default('duration_minutes') }}"
+       value="{{ (_h * 60 + _m) or 60 }}" />
+<div class="form-hint" id="{{ _prefix }}Preview">Duração: —</div>
+
+<script>
+(function() {
+  function atualizaDuracao_{{ _prefix }}() {
+    const h = parseInt(document.getElementById('{{ _prefix }}H').value) || 0;
+    const m = parseInt(document.getElementById('{{ _prefix }}M').value) || 0;
+    const total = h * 60 + m;
+    document.getElementById('{{ _prefix }}Total').value = total || 60;
+
+    let texto = '';
+    if (h === 0 && m === 0)     texto = '1 hora (mínimo)';
+    else if (h === 0)           texto = `${m} min`;
+    else if (m === 0)           texto = h === 1 ? '1 hora' : `${h} horas`;
+    else                        texto = `${h}h ${m}min`;
+    document.getElementById('{{ _prefix }}Preview').textContent = 'Duração: ' + texto;
+  }
+  document.getElementById('{{ _prefix }}H').addEventListener('change', atualizaDuracao_{{ _prefix }});
+  document.getElementById('{{ _prefix }}M').addEventListener('change', atualizaDuracao_{{ _prefix }});
+  atualizaDuracao_{{ _prefix }}();
+})();
+</script>
