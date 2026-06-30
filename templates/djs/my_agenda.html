@@ -35,12 +35,14 @@
           <input class="form-input" type="time" name="event_time" required />
         </div>
         <div>
-          <label class="form-label">Duração (minutos)</label>
-          <input class="form-input" type="number" name="duration_minutes" value="60" min="15" max="480" />
-        </div>
-        <div>
           <label class="form-label">Plataforma</label>
           <input class="form-input" type="text" name="platform" placeholder="Ex: VRChat, Twitch..." />
+        </div>
+        <div style="grid-column:1/-1;">
+          <label class="form-label">Duração *</label>
+          {% with dur_id_prefix='aDur', dur_hours=1, dur_minutes=0 %}
+            {% include "partials/duration_select.html" %}
+          {% endwith %}
         </div>
         <div style="grid-column:1/-1;">
           <label class="form-label">Descrição (opcional)</label>
@@ -96,7 +98,7 @@
           </div>
           <div style="font-size:.77rem; color:var(--muted); display:flex; gap:.75rem; flex-wrap:wrap;">
             <span>{{ entry.event_time[:5] }}</span>
-            {% if entry.duration_minutes %}<span>{{ entry.duration_minutes }}min</span>{% endif %}
+            {% if entry.duration_minutes %}<span>{{ entry.duration_minutes | duracao }}</span>{% endif %}
             {% if entry.platform %}<span>{{ entry.platform }}</span>{% endif %}
           </div>
         </div>

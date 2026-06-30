@@ -61,12 +61,18 @@
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Data *</label>
-          <input class="form-input" type="date" name="event_date" required />
+          <input class="form-input" type="date" name="event_date" id="eventDateInput" required />
         </div>
         <div class="form-group">
           <label class="form-label">Horário *</label>
           <input class="form-input" type="time" name="event_time" required />
         </div>
+      </div>
+      <div id="blockedDateWarning"
+           style="display:none; align-items:center; gap:.5rem; padding:.65rem 1rem;
+                  background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.25);
+                  border-radius:var(--radius-sm); font-size:.82rem; color:var(--warning); margin-bottom:1rem;">
+        ⚠ Este dia foi marcado como indisponível pelo DJ. Mas você ainda pode enviar a proposta.
       </div>
 
       <!-- Disponibilidade do DJ como referência -->
@@ -107,27 +113,9 @@
       <!-- Duração flexível -->
       <div class="form-group">
         <label class="form-label">Duração *</label>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem;">
-          <div>
-            <label class="form-label" style="font-size:.72rem;">Horas</label>
-            <select class="form-select" name="duration_hours" id="durH">
-              {% for h in range(0, 7) %}
-                <option value="{{ h }}" {% if h == 1 %}selected{% endif %}>{{ h }}h</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div>
-            <label class="form-label" style="font-size:.72rem;">Minutos</label>
-            <select class="form-select" name="duration_minutes_extra" id="durM">
-              <option value="0" selected>0 min</option>
-              <option value="15">15 min</option>
-              <option value="30">30 min</option>
-              <option value="45">45 min</option>
-            </select>
-          </div>
-        </div>
-        <input type="hidden" name="duration_minutes" id="durTotal" value="60" />
-        <div class="form-hint" id="durPreview">Duração: 1 hora</div>
+        {% with dur_id_prefix='dur', dur_hours=1, dur_minutes=0 %}
+          {% include "partials/duration_select.html" %}
+        {% endwith %}
       </div>
 
       <div class="form-row">
@@ -210,26 +198,22 @@
 
 {% block scripts %}
 <script>
-function atualizaDuracao() {
-  const h = parseInt(document.getElementById('durH').value) || 0;
-  const m = parseInt(document.getElementById('durM').value) || 0;
-  const total = h * 60 + m;
-  document.getElementById('durTotal').value = total || 60;
-  let texto = '';
-  if (h === 0 && m === 0)     texto = '1 hora (mínimo)';
-  else if (h === 0)           texto = `${m} min`;
-  else if (m === 0)           texto = h === 1 ? '1 hora' : `${h} horas`;
-  else                        texto = `${h}h ${m}min`;
-  document.getElementById('durPreview').textContent = 'Duração: ' + texto;
+// Aviso de data bloqueada pelo DJ
+const BLOCKED_DJ_DATES = {{ (dj.availability | selectattr('blocked_date', 'ne', none) | map(attribute='blocked_date') | list if dj.availability else []) | tojson }};
+const dateInput = document.getElementById('eventDateInput');
+const warningEl = document.getElementById('blockedDateWarning');
+if (dateInput && warningEl) {
+  dateInput.addEventListener('change', () => {
+    warningEl.style.display = BLOCKED_DJ_DATES.includes(dateInput.value) ? 'flex' : 'none';
+  });
 }
-document.getElementById('durH').addEventListener('change', atualizaDuracao);
-document.getElementById('durM').addEventListener('change', atualizaDuracao);
 
 // Controle do tipo de valor
 const radios = document.querySelectorAll('input[name="valor_tipo"]');
 const valorFields = document.getElementById('valor_fields');
 const offeredInput = document.getElementById('offered_value_input');
 const freeInput = document.getElementById('offered_value_free');
+
 
 function updateValorFields() {
   const tipo = document.querySelector('input[name="valor_tipo"]:checked')?.value;
