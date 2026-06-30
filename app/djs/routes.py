@@ -217,11 +217,14 @@ def my_agenda():
 @dj_required
 def add_agenda_entry():
     form = request.form
+    dur_h = int(form.get("duration_hours", 1) or 0)
+    dur_m = int(form.get("duration_minutes_extra", 0) or 0)
+    total_min = (dur_h * 60 + dur_m) or 60
     payload = {
         "event_name":       form.get("event_name", "").strip(),
         "event_date":       form.get("event_date", ""),
         "event_time":       form.get("event_time", ""),
-        "duration_minutes": int(form.get("duration_minutes", 60) or 60),
+        "duration_minutes": total_min,
         "platform":         form.get("platform", "").strip() or None,
         "description":      form.get("description", "").strip() or None,
         "is_private":       bool(form.get("is_private")),

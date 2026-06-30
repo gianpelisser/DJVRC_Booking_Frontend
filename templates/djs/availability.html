@@ -6,7 +6,7 @@
   (3,"Quinta-feira"),  (4,"Sexta-feira"), (5,"Sábado"), (6,"Domingo")
 ] %}
 
-{# Indexa disponibilidade salva por weekday para fácil acesso #}
+{# Indexa disponibilidade salva por weekday #}
 {% set saved = {} %}
 {% for a in availability if a.weekday is not none %}
   {% if saved.update({a.weekday: a}) %}{% endif %}
@@ -15,7 +15,7 @@
 {% set blocked_dates = availability | selectattr("blocked_date") | list %}
 
 {% block content %}
-<div class="container" style="max-width:680px; padding-top:2rem; padding-bottom:4rem;">
+<div class="container" style="max-width:780px; padding-top:2rem; padding-bottom:4rem;">
 
   <div style="display:flex; align-items:center; gap:1rem; margin-bottom:2rem; flex-wrap:wrap;">
     <a href="{{ url_for('djs.my_profile') }}" class="btn btn-ghost btn-sm">← Perfil DJ</a>
@@ -24,6 +24,7 @@
 
   <form method="post" id="availForm">
 
+    <!-- Dias da semana -->
     <div class="card mb-3">
       <div class="card-title mb-2">Dias e horários disponíveis</div>
       <p style="font-size:.8rem; color:var(--muted); margin-bottom:1.25rem;">
@@ -65,31 +66,31 @@
       </div>
     </div>
 
+    <!-- Datas bloqueadas — calendário -->
     <div class="card mb-3">
       <div class="card-title mb-2">Datas bloqueadas</div>
       <p style="font-size:.8rem; color:var(--muted); margin-bottom:1rem;">
-        Datas específicas em que você não estará disponível (feriados, viagens, etc).
+        Clique nos dias do calendário para marcar como indisponível. Você pode selecionar
+        vários dias seguidos ou alternados.
       </p>
-      <div id="blockedDates">
-        {% if blocked_dates %}
-          {% for b in blocked_dates %}
-            <div style="display:flex; gap:.75rem; margin-bottom:.5rem;" class="blocked-row">
-              <input type="date" name="blocked_date[]" value="{{ b.blocked_date }}" class="form-input" />
-              <button type="button" class="btn btn-danger btn-sm"
-                      onclick="this.parentElement.remove()">✕</button>
-            </div>
-          {% endfor %}
-        {% else %}
-          <div style="display:flex; gap:.75rem; margin-bottom:.5rem;" class="blocked-row">
-            <input type="date" name="blocked_date[]" class="form-input" />
-            <button type="button" class="btn btn-danger btn-sm"
-                    onclick="this.parentElement.remove()">✕</button>
-          </div>
-        {% endif %}
+
+      <!-- Navegação do mês -->
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:.85rem;">
+        <button type="button" class="btn btn-ghost btn-sm" id="prevMonth">‹</button>
+        <div id="calTitle" style="font-weight:600; font-size:.95rem; font-family:var(--font-d); letter-spacing:.5px;"></div>
+        <button type="button" class="btn btn-ghost btn-sm" id="nextMonth">›</button>
       </div>
-      <button type="button" class="btn btn-ghost btn-sm" onclick="addBlockedDate()">
-        + Adicionar data bloqueada
-      </button>
+
+      <!-- Grade do calendário -->
+      <div id="calGrid" style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:1rem;"></div>
+
+      <div style="font-size:.75rem; color:var(--muted); display:flex; align-items:center; gap:.5rem;">
+        <span style="width:10px; height:10px; border-radius:3px; background:var(--danger); display:inline-block;"></span>
+        Dia bloqueado — clique novamente para desmarcar
+      </div>
+
+      <!-- Inputs hidden enviados no submit -->
+      <div id="blockedInputsContainer"></div>
     </div>
 
     <div style="display:flex; gap:1rem;">
@@ -110,14 +111,105 @@ function toggleDay(cb) {
   row.style.background  = cb.checked ? 'rgba(0,229,255,.04)' : 'transparent';
 }
 
-function addBlockedDate() {
-  const container = document.getElementById('blockedDates');
-  const div = document.createElement('div');
-  div.className = 'blocked-row';
-  div.style.cssText = 'display:flex; gap:.75rem; margin-bottom:.5rem;';
-  div.innerHTML = '<input type="date" name="blocked_date[]" class="form-input" />' +
-                  '<button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">✕</button>';
-  container.appendChild(div);
+// ── Calendário de bloqueios ──────────────────────────────────────────────
+const BLOCKED_INITIAL = {{ blocked_dates | map(attribute='blocked_date') | list | tojson }};
+let blockedSet = new Set(BLOCKED_INITIAL);
+
+const todayStr = new Date().toISOString().slice(0, 10);
+let viewYear, viewMonth; // viewMonth: 0-11
+
+(function initView() {
+  const now = new Date();
+  viewYear = now.getFullYear();
+  viewMonth = now.getMonth();
+})();
+
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DIAS_SEMANA = ['S','T','Q','Q','S','S','D'];
+
+function pad(n) { return String(n).padStart(2, '0'); }
+
+function renderCalendar() {
+  const grid = document.getElementById('calGrid');
+  const title = document.getElementById('calTitle');
+  title.textContent = `${MESES[viewMonth]} ${viewYear}`;
+  grid.innerHTML = '';
+
+  // Cabeçalho dos dias da semana (Seg-Dom)
+  const semanaLabels = ['S','T','Q','Q','S','S','D'];
+  semanaLabels.forEach(l => {
+    const el = document.createElement('div');
+    el.textContent = l;
+    el.style.cssText = 'text-align:center; font-size:.7rem; color:var(--muted); padding:.3rem 0; font-weight:600;';
+    grid.appendChild(el);
+  });
+
+  // Primeiro dia do mês (ajustado para semana começar Segunda)
+  const firstDay = new Date(viewYear, viewMonth, 1);
+  let startOffset = firstDay.getDay() - 1; // 0=Dom vira -1
+  if (startOffset < 0) startOffset = 6;
+
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+  // Espaços vazios antes do dia 1
+  for (let i = 0; i < startOffset; i++) {
+    const empty = document.createElement('div');
+    grid.appendChild(empty);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${viewYear}-${pad(viewMonth + 1)}-${pad(d)}`;
+    const isPast = dateStr < todayStr;
+    const isBlocked = blockedSet.has(dateStr);
+
+    const cell = document.createElement('button');
+    cell.type = 'button';
+    cell.textContent = d;
+    cell.disabled = isPast;
+    cell.style.cssText = `
+      aspect-ratio:1; border-radius:6px; border:1px solid var(--border);
+      font-size:.82rem; cursor:${isPast ? 'not-allowed' : 'pointer'};
+      background:${isBlocked ? 'var(--danger)' : 'var(--bg2)'};
+      color:${isPast ? 'var(--muted)' : (isBlocked ? '#fff' : 'var(--text)')};
+      opacity:${isPast ? '.35' : '1'};
+      transition:background .15s;
+    `;
+    if (!isPast) {
+      cell.addEventListener('click', () => {
+        if (blockedSet.has(dateStr)) blockedSet.delete(dateStr);
+        else blockedSet.add(dateStr);
+        renderCalendar();
+        syncHiddenInputs();
+      });
+    }
+    grid.appendChild(cell);
+  }
 }
+
+function syncHiddenInputs() {
+  const container = document.getElementById('blockedInputsContainer');
+  container.innerHTML = '';
+  blockedSet.forEach(dateStr => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'blocked_date[]';
+    input.value = dateStr;
+    container.appendChild(input);
+  });
+}
+
+document.getElementById('prevMonth').addEventListener('click', () => {
+  viewMonth--;
+  if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+  renderCalendar();
+});
+document.getElementById('nextMonth').addEventListener('click', () => {
+  viewMonth++;
+  if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+  renderCalendar();
+});
+
+renderCalendar();
+syncHiddenInputs();
 </script>
 {% endblock %}

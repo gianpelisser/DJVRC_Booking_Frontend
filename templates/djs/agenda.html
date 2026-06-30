@@ -53,7 +53,7 @@
           </div>
           <div style="font-size:.8rem; color:var(--muted); display:flex; gap:1rem; flex-wrap:wrap;">
             <span>🕐 {{ entry.event_time[:5] }}</span>
-            {% if entry.duration_minutes %}<span>⏱ {{ entry.duration_minutes }}min</span>{% endif %}
+            {% if entry.duration_minutes %}<span>⏱ {{ entry.duration_minutes | duracao }}</span>{% endif %}
             {% if entry.platform %}<span>🎮 {{ entry.platform }}</span>{% endif %}
           </div>
           {% if entry.description %}

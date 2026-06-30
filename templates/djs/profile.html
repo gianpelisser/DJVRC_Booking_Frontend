@@ -249,7 +249,7 @@
             </div>
             <div style="font-size:.75rem; color:var(--muted);">
               {{ entry.event_time[:5] }}
-              {% if entry.duration_minutes %} · {{ entry.duration_minutes }}min{% endif %}
+              {% if entry.duration_minutes %} · {{ entry.duration_minutes | duracao }}{% endif %}
               {% if entry.platform %} · {{ entry.platform }}{% endif %}
             </div>
           </div>
