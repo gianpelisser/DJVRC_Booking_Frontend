@@ -1,0 +1,120 @@
+{% extends "base_app.html" %}
+{% block title %}Meus Grupos — DJ VRC Booking{% endblock %}
+{% block content %}
+<div class="app-page-header">
+  <div>
+    <h1 class="app-page-title">MEUS GRUPOS</h1>
+    <p class="app-page-sub">Grupos que você representa ao contratar DJs</p>
+  </div>
+  <a href="{{ url_for('account.dashboard') }}" class="btn btn-ghost btn-sm">← Minha Conta</a>
+</div>
+
+<!-- Criar novo grupo -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-title" style="margin-bottom:1rem;">➕ Novo grupo</div>
+  <form method="post" action="{{ url_for('groups.create_group') }}">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+      <div style="grid-column:1/-1;">
+        <label class="form-label">Nome do grupo *</label>
+        <input class="form-input" type="text" name="name"
+               placeholder="Ex: VORTEX Club, Neon Party..." required />
+      </div>
+      <div style="grid-column:1/-1;">
+        <label class="form-label">Descrição</label>
+        <input class="form-input" type="text" name="description"
+               placeholder="Breve descrição (opcional)" />
+      </div>
+      <div>
+        <label class="form-label">Servidor Discord</label>
+        <input class="form-input" type="url" name="discord_url"
+               placeholder="https://discord.gg/..." />
+      </div>
+      <div>
+        <label class="form-label">Grupo VRChat</label>
+        <input class="form-input" type="url" name="vrchat_url"
+               placeholder="https://vrc.group/..." />
+      </div>
+      <div style="grid-column:1/-1;">
+        <label class="form-label">Website</label>
+        <input class="form-input" type="url" name="website_url"
+               placeholder="https://..." />
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Criar grupo</button>
+  </form>
+</div>
+
+<!-- Lista de grupos -->
+{% if groups %}
+  <div style="display:flex; flex-direction:column; gap:.75rem;">
+    {% for g in groups %}
+    <div class="card" id="group-{{ g.id }}">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+        <div style="flex:1; min-width:0;">
+          <div style="font-weight:600; font-size:1rem; margin-bottom:.25rem;">{{ g.name }}</div>
+          {% if g.description %}
+            <p style="font-size:.83rem; color:var(--muted); margin-bottom:.5rem;">{{ g.description }}</p>
+          {% endif %}
+          <div style="display:flex; gap:.75rem; flex-wrap:wrap; font-size:.78rem; color:var(--muted);">
+            {% if g.discord_url %}<a href="{{ g.discord_url }}" target="_blank" style="color:var(--accent);">Discord</a>{% endif %}
+            {% if g.vrchat_url %}<a href="{{ g.vrchat_url }}" target="_blank" style="color:var(--accent);">VRChat</a>{% endif %}
+            {% if g.website_url %}<a href="{{ g.website_url }}" target="_blank" style="color:var(--accent);">Website</a>{% endif %}
+          </div>
+        </div>
+
+        <!-- Ações -->
+        <div style="display:flex; gap:.5rem; flex-shrink:0;">
+          <button class="btn btn-ghost btn-sm"
+                  onclick="document.getElementById('edit-{{ g.id }}').style.display='block';this.parentElement.parentElement.parentElement.querySelector('.group-view').style.display='none'">
+            ✏ Editar
+          </button>
+          <form method="post" action="{{ url_for('groups.delete_group', group_id=g.id) }}"
+                onsubmit="return confirm('Remover {{ g.name }}?')">
+            <button type="submit" class="btn btn-danger btn-sm">✕</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Form de edição (oculto) -->
+      <div id="edit-{{ g.id }}" style="display:none; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border);">
+        <form method="post" action="{{ url_for('groups.update_group', group_id=g.id) }}">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem; margin-bottom:.75rem;">
+            <div style="grid-column:1/-1;">
+              <label class="form-label">Nome</label>
+              <input class="form-input" type="text" name="name" value="{{ g.name }}" required />
+            </div>
+            <div style="grid-column:1/-1;">
+              <label class="form-label">Descrição</label>
+              <input class="form-input" type="text" name="description" value="{{ g.description or '' }}" />
+            </div>
+            <div>
+              <label class="form-label">Discord</label>
+              <input class="form-input" type="url" name="discord_url" value="{{ g.discord_url or '' }}" />
+            </div>
+            <div>
+              <label class="form-label">VRChat</label>
+              <input class="form-input" type="url" name="vrchat_url" value="{{ g.vrchat_url or '' }}" />
+            </div>
+            <div style="grid-column:1/-1;">
+              <label class="form-label">Website</label>
+              <input class="form-input" type="url" name="website_url" value="{{ g.website_url or '' }}" />
+            </div>
+          </div>
+          <div style="display:flex; gap:.5rem;">
+            <button type="submit" class="btn btn-primary btn-sm">Salvar</button>
+            <button type="button" class="btn btn-ghost btn-sm"
+                    onclick="document.getElementById('edit-{{ g.id }}').style.display='none'">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty">
+    <div class="empty-icon">👥</div>
+    <h3>Nenhum grupo criado</h3>
+    <p>Crie grupos para identificar sua comunidade ao contratar DJs.</p>
+  </div>
+{% endif %}
+{% endblock %}
