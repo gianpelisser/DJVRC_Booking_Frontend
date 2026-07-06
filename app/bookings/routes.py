@@ -75,6 +75,7 @@ def new_booking_post(dj_id):
         "currency":        form.get("currency", "USD"),
         "description":     form.get("description"),
         "group_id":        int(form.get("group_id")) if form.get("group_id") else None,
+        "timezone":        form.get("timezone", "America/Sao_Paulo") or "America/Sao_Paulo",
     }
 
     data, status = api_post("/bookings/", payload)

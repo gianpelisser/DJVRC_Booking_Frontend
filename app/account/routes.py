@@ -35,6 +35,7 @@ def update():
     email        = form.get("email", "").strip()
     password     = form.get("password", "").strip()
     display_name = form.get("display_name", "").strip()
+    timezone     = form.get("timezone", "").strip()
 
     if username:
         payload["username"] = username
@@ -44,6 +45,8 @@ def update():
         payload["password"] = password
     # display_name pode ser vazio (limpar apelido)
     payload["display_name"] = display_name or None
+    if timezone:
+        payload["timezone"] = timezone
 
     if not payload:
         flash("Nenhuma alteracao enviada.", "warning")

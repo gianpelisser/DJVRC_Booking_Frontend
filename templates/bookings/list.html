@@ -68,8 +68,13 @@
             {{ b.event_name }}
           </div>
           <div style="font-size:.78rem; color:var(--muted); display:flex; gap:.75rem; flex-wrap:wrap;">
-            <span>📅 {{ b.event_date | date_br }}</span>
-            <span>🕐 {{ b.event_time }}</span>
+            {% if b.event_datetime_utc %}
+              <span>📅 <span data-utc="{{ b.event_datetime_utc }}" data-fmt="date"></span></span>
+              <span>🕐 <span data-utc="{{ b.event_datetime_utc }}" data-fmt="time"></span></span>
+            {% else %}
+              <span>📅 {{ b.event_date | date_br }}</span>
+              <span>🕐 {{ b.event_time }}</span>
+            {% endif %}
             <span>⏱ {{ b.duration_minutes | duracao }}</span>
             {% if b.platform %}<span>🎮 {{ b.platform }}</span>{% endif %}
           </div>

@@ -34,11 +34,19 @@
         <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:1rem; margin-bottom:1rem;">
           <div>
             <div class="detail-label">📅 Data</div>
-            <div class="detail-value" style="font-weight:500;">{{ booking.event_date | date_br }}</div>
+            <div class="detail-value" style="font-weight:500;">
+              {% if booking.event_datetime_utc %}
+                <span data-utc="{{ booking.event_datetime_utc }}" data-fmt="date"></span>
+              {% else %}{{ booking.event_date | date_br }}{% endif %}
+            </div>
           </div>
           <div>
             <div class="detail-label">🕐 Horário</div>
-            <div class="detail-value" style="font-weight:500;">{{ booking.event_time }}</div>
+            <div class="detail-value" style="font-weight:500;">
+              {% if booking.event_datetime_utc %}
+                <span data-utc="{{ booking.event_datetime_utc }}" data-fmt="time"></span>
+              {% else %}{{ booking.event_time }}{% endif %}
+            </div>
           </div>
           <div>
             <div class="detail-label">⏱ Duração</div>
