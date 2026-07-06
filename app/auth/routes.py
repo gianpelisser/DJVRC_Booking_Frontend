@@ -74,6 +74,7 @@ def register_post():
         "username":         username,
         "email":            email,
         "is_dj":            is_dj,
+        "timezone":         form.get("timezone", "America/Sao_Paulo").strip() or "America/Sao_Paulo",
         "discord_id":           discord_id or None,
         "discord_username":     discord_username or None,
         "discord_display_name": discord_display_name or None,
@@ -260,7 +261,6 @@ def google_callback():
     params = urlencode({
         "google_id":     d.get("google_id", ""),
         "google_name":   d.get("google_name", ""),
-        # "google_avatar": d.get("google_avatar", ""), (removido: usando no Token da sessão)
         "email":         d.get("email", ""),
         "username":      d.get("suggested_username", ""),
     })

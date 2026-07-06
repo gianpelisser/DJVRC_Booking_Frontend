@@ -73,10 +73,18 @@
         <!-- Data -->
         <div style="text-align:center; min-width:44px; flex-shrink:0;">
           <div style="font-size:.7rem; color:var(--muted);">
-            {{ entry.event_date[5:7] }}/{{ entry.event_date[:4] }}
+            {% if entry.event_datetime_utc %}
+              <span data-utc="{{ entry.event_datetime_utc }}" data-fmt="date"></span>
+            {% else %}
+              {{ entry.event_date[5:7] }}/{{ entry.event_date[:4] }}
+            {% endif %}
           </div>
           <div style="font-size:1.2rem; font-weight:700; font-family:var(--font-d); color:var(--accent);">
-            {{ entry.event_date[8:10] }}
+            {% if entry.event_datetime_utc %}
+              <span data-utc="{{ entry.event_datetime_utc }}" data-fmt="date" style="font-size:1rem;"></span>
+            {% else %}
+              {{ entry.event_date[8:10] }}
+            {% endif %}
           </div>
         </div>
 
@@ -97,7 +105,11 @@
             {% endif %}
           </div>
           <div style="font-size:.77rem; color:var(--muted); display:flex; gap:.75rem; flex-wrap:wrap;">
-            <span>{{ entry.event_time[:5] }}</span>
+            {% if entry.event_datetime_utc %}
+              <span data-utc="{{ entry.event_datetime_utc }}" data-fmt="time"></span>
+            {% else %}
+              <span>{{ entry.event_time[:5] }}</span>
+            {% endif %}
             {% if entry.duration_minutes %}<span>{{ entry.duration_minutes | duracao }}</span>{% endif %}
             {% if entry.platform %}<span>{{ entry.platform }}</span>{% endif %}
           </div>

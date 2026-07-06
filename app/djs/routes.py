@@ -220,6 +220,7 @@ def add_agenda_entry():
     dur_h = int(form.get("duration_hours", 1) or 0)
     dur_m = int(form.get("duration_minutes_extra", 0) or 0)
     total_min = (dur_h * 60 + dur_m) or 60
+    user = session.get("user", {})
     payload = {
         "event_name":       form.get("event_name", "").strip(),
         "event_date":       form.get("event_date", ""),
@@ -228,6 +229,7 @@ def add_agenda_entry():
         "platform":         form.get("platform", "").strip() or None,
         "description":      form.get("description", "").strip() or None,
         "is_private":       bool(form.get("is_private")),
+        "timezone":         user.get("timezone") or "America/Sao_Paulo",
     }
     data, status = api_post("/djs/me/agenda", payload)
     if status in (200, 201) and data and data.get("success"):

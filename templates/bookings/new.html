@@ -33,7 +33,9 @@
     {% endif %}
   </div>
 
-  <form method="post">
+  <form method="post" id="bookingForm">
+    <!-- Fuso horário do navegador, enviado automaticamente -->
+    <input type="hidden" name="timezone" id="bookingTz" value="" />
 
     <!-- Quem está contratando -->
     {% if groups %}
@@ -198,7 +200,9 @@
 
 {% block scripts %}
 <script>
-// Aviso de data bloqueada pelo DJ
+// Preenche o fuso horário do navegador antes do envio
+document.getElementById('bookingTz').value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 const BLOCKED_DJ_DATES = {{ (dj.availability | selectattr('blocked_date', 'ne', none) | map(attribute='blocked_date') | list if dj.availability else []) | tojson }};
 const dateInput = document.getElementById('eventDateInput');
 const warningEl = document.getElementById('blockedDateWarning');

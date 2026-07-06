@@ -94,6 +94,10 @@
           <span>Quero ser DJ na plataforma</span>
         </label>
 
+        {% with tz_name="timezone", tz_current="America/Sao_Paulo" %}
+          {% include "partials/timezone_select.html" %}
+        {% endwith %}
+
         <button type="submit" class="btn btn-primary btn-block btn-lg">
           Criar conta
         </button>
