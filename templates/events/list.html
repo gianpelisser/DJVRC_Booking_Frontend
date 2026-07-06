@@ -23,7 +23,13 @@
           <div class="card-title">{{ e.name }}</div>
           <span class="badge badge-{{ e.status }}">{{ e.status }}</span>
         </div>
-        <div style="font-size:.875rem; color:var(--muted);">📅 {{ e.event_date | date_br }} às {{ e.event_time }}</div>
+        <div style="font-size:.875rem; color:var(--muted);">
+          {% if e.event_datetime_utc %}
+            📅 <span data-utc="{{ e.event_datetime_utc }}" data-fmt="full"></span>
+          {% else %}
+            📅 {{ e.event_date | date_br }} às {{ e.event_time }}
+          {% endif %}
+        </div>
         {% if e.platform %}<div style="font-size:.8rem; color:var(--muted); margin-top:.25rem;">🎮 {{ e.platform }}</div>{% endif %}
       </a>
       {% endfor %}

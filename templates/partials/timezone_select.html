@@ -1,8 +1,4 @@
-{# Seletor de fuso horário com detecção automática pelo navegador
-   Parâmetros:
-   - tz_name:    nome do campo (default: "timezone")
-   - tz_current: fuso atual do usuário (ex: session.user.timezone)
-#}
+{# Seletor de fuso horário com detecção automática pelo navegador #}
 {% set _name = tz_name | default("timezone") %}
 {% set _current = tz_current | default("America/Sao_Paulo") %}
 
@@ -15,68 +11,75 @@
   </label>
   <select class="form-select" name="{{ _name }}" id="tzSelect">
     {% set tz_options = [
-      ("America/Sao_Paulo",       "Brasil — Brasília / São Paulo (UTC-3)"),
-      ("America/Manaus",          "Brasil — Manaus / Amazonas (UTC-4)"),
-      ("America/Rio_Branco",      "Brasil — Acre (UTC-5)"),
-      ("America/Noronha",         "Brasil — Fernando de Noronha (UTC-2)"),
-      ("America/New_York",        "EUA — Nova York (UTC-5/-4)"),
-      ("America/Chicago",         "EUA — Chicago (UTC-6/-5)"),
-      ("America/Denver",          "EUA — Denver (UTC-7/-6)"),
-      ("America/Los_Angeles",     "EUA — Los Angeles (UTC-8/-7)"),
-      ("America/Toronto",         "Canadá — Toronto (UTC-5/-4)"),
-      ("America/Vancouver",       "Canadá — Vancouver (UTC-8/-7)"),
-      ("America/Mexico_City",     "México (UTC-6/-5)"),
-      ("America/Argentina/Buenos_Aires", "Argentina — Buenos Aires (UTC-3)"),
-      ("America/Lima",            "Peru — Lima (UTC-5)"),
-      ("America/Santiago",        "Chile — Santiago (UTC-4/-3)"),
-      ("America/Bogota",          "Colômbia — Bogotá (UTC-5)"),
-      ("Europe/London",           "Reino Unido — Londres (UTC+0/+1)"),
-      ("Europe/Paris",            "França / Alemanha / Bélgica (UTC+1/+2)"),
-      ("Europe/Lisbon",           "Portugal — Lisboa (UTC+0/+1)"),
-      ("Europe/Moscow",           "Rússia — Moscou (UTC+3)"),
-      ("Asia/Tokyo",              "Japão — Tóquio (UTC+9)"),
-      ("Asia/Seoul",              "Coreia do Sul — Seul (UTC+9)"),
-      ("Asia/Shanghai",           "China — Xangai (UTC+8)"),
-      ("Asia/Kolkata",            "Índia (UTC+5:30)"),
-      ("Australia/Sydney",        "Austrália — Sydney (UTC+10/+11)"),
-      ("UTC",                     "UTC (sem fuso)"),
+      ("",                                    "── Brasil ──────────────────────────"),
+      ("America/Sao_Paulo",                   "Brasília (UTC-3)"),
+      ("America/Manaus",                      "Manaus (UTC-4)"),
+      ("America/Rio_Branco",                  "Rio Branco / Acre (UTC-5)"),
+      ("America/Noronha",                     "Fernando de Noronha (UTC-2)"),
+      ("",                                    "── América ──────────────────────────"),
+      ("America/New_York",                    "EUA — Nova York (UTC-5)"),
+      ("America/Chicago",                     "EUA — Chicago (UTC-6)"),
+      ("America/Denver",                      "EUA — Denver (UTC-7)"),
+      ("America/Los_Angeles",                 "EUA — Los Angeles (UTC-8)"),
+      ("America/Toronto",                     "Canadá — Toronto (UTC-5)"),
+      ("America/Vancouver",                   "Canadá — Vancouver (UTC-8)"),
+      ("America/Mexico_City",                 "México — Cidade do México (UTC-6)"),
+      ("America/Argentina/Buenos_Aires",      "Argentina — Buenos Aires (UTC-3)"),
+      ("America/Bogota",                      "Colômbia — Bogotá (UTC-5)"),
+      ("America/Lima",                        "Peru — Lima (UTC-5)"),
+      ("America/Santiago",                    "Chile — Santiago (UTC-4)"),
+      ("",                                    "── Europa ───────────────────────────"),
+      ("Europe/London",                       "Reino Unido — Londres (UTC+0)"),
+      ("Europe/Lisbon",                       "Portugal — Lisboa (UTC+0)"),
+      ("Europe/Paris",                        "França — Paris (UTC+1)"),
+      ("Europe/Berlin",                       "Alemanha — Berlim (UTC+1)"),
+      ("Europe/Brussels",                     "Bélgica — Bruxelas (UTC+1)"),
+      ("Europe/Moscow",                       "Rússia — Moscou (UTC+3)"),
+      ("",                                    "── Ásia ─────────────────────────────"),
+      ("Asia/Kolkata",                        "Índia — Nova Délhi (UTC+5:30)"),
+      ("Asia/Shanghai",                       "China — Xangai (UTC+8)"),
+      ("Asia/Tokyo",                          "Japão — Tóquio (UTC+9)"),
+      ("Asia/Seoul",                          "Coreia do Sul — Seul (UTC+9)"),
+      ("",                                    "── Oceania ──────────────────────────"),
+      ("Australia/Sydney",                    "Austrália — Sydney (UTC+10)"),
+      ("",                                    "── UTC ──────────────────────────────"),
+      ("UTC",                                 "UTC (sem fuso)"),
     ] %}
     {% for tz_val, tz_label in tz_options %}
-      <option value="{{ tz_val }}" {% if _current == tz_val %}selected{% endif %}>
-        {{ tz_label }}
-      </option>
+      {% if not tz_val %}
+        <option value="" disabled style="color:var(--muted); font-size:.75rem;">{{ tz_label }}</option>
+      {% else %}
+        <option value="{{ tz_val }}" {% if _current == tz_val %}selected{% endif %}>
+          {{ tz_label }}
+        </option>
+      {% endif %}
     {% endfor %}
   </select>
   <div id="tzDetected" style="font-size:.75rem; color:var(--accent); margin-top:.3rem; display:none;">
-    ✓ Fuso detectado pelo navegador: <strong id="tzDetectedName"></strong> — 
+    ✓ Fuso detectado pelo navegador: <strong id="tzDetectedName"></strong> —
     <a href="#" id="tzUseDetected" style="color:var(--accent);">usar este</a>
   </div>
 </div>
 
 <script>
 (function(){
-  const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const select   = document.getElementById('tzSelect');
-  const banner   = document.getElementById('tzDetected');
-  const nameEl   = document.getElementById('tzDetectedName');
-  const useLink  = document.getElementById('tzUseDetected');
-
+  var detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  var select   = document.getElementById('tzSelect');
+  var banner   = document.getElementById('tzDetected');
+  var nameEl   = document.getElementById('tzDetectedName');
+  var useLink  = document.getElementById('tzUseDetected');
   if (!detected || !select) return;
-
-  // Mostrar banner apenas se o detectado for diferente do atual
-  const current = select.value;
+  var current = select.value;
   if (detected !== current) {
     nameEl.textContent = detected;
     banner.style.display = 'block';
     useLink.addEventListener('click', function(e) {
       e.preventDefault();
-      // Verificar se a opção existe no select
-      const opt = Array.from(select.options).find(o => o.value === detected);
+      var opt = Array.from(select.options).find(function(o) { return o.value === detected; });
       if (opt) {
         select.value = detected;
       } else {
-        // Adicionar dinamicamente se não estiver na lista
-        const newOpt = new Option(detected, detected, true, true);
+        var newOpt = new Option(detected, detected, true, true);
         select.add(newOpt);
         select.value = detected;
       }

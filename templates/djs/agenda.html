@@ -30,13 +30,18 @@
         <div style="text-align:center; min-width:48px; flex-shrink:0;">
           <div style="font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px;">
             {% set months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'] %}
-            {{ months[entry.event_date[5:7]|int - 1] }}
+            <span data-utc="{{ entry.event_datetime_utc or '' }}" data-fmt="date"
+                  style="display:block; font-size:.75rem;">
+              {{ months[entry.event_date[5:7]|int - 1] if not entry.event_datetime_utc else '' }}
+            </span>
           </div>
           <div style="font-size:1.6rem; font-weight:800; font-family:var(--font-d);
                       color:var(--accent); line-height:1;">
-            {{ entry.event_date[8:10] }}
+            {% if entry.event_datetime_utc %}
+              <span data-utc="{{ entry.event_datetime_utc }}" data-fmt="date" style="font-size:1rem;"></span>
+            {% else %}{{ entry.event_date[8:10] }}{% endif %}
           </div>
-          <div style="font-size:.7rem; color:var(--muted);">{{ entry.event_date[:4] }}</div>
+          <div style="font-size:.7rem; color:var(--muted);">{{ entry.event_date[:4] if not entry.event_datetime_utc else '' }}</div>
         </div>
 
         <!-- Info -->
@@ -52,7 +57,11 @@
             {% endif %}
           </div>
           <div style="font-size:.8rem; color:var(--muted); display:flex; gap:1rem; flex-wrap:wrap;">
-            <span>🕐 {{ entry.event_time[:5] }}</span>
+            {% if entry.event_datetime_utc %}
+              <span>🕐 <span data-utc="{{ entry.event_datetime_utc }}" data-fmt="time"></span></span>
+            {% else %}
+              <span>🕐 {{ entry.event_time[:5] }}</span>
+            {% endif %}
             {% if entry.duration_minutes %}<span>⏱ {{ entry.duration_minutes | duracao }}</span>{% endif %}
             {% if entry.platform %}<span>🎮 {{ entry.platform }}</span>{% endif %}
           </div>

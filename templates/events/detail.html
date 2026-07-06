@@ -12,8 +12,14 @@
     <div>
       <div class="card mb-2">
         <div class="info-row">
-          <div class="info-item"><div class="detail-label">Data</div><div class="detail-value">{{ event.event_date | date_br }}</div></div>
-          <div class="info-item"><div class="detail-label">Horário</div><div class="detail-value">{{ event.event_time }}</div></div>
+          <div class="info-item"><div class="detail-label">Data</div><div class="detail-value">
+            {% if event.event_datetime_utc %}<span data-utc="{{ event.event_datetime_utc }}" data-fmt="date"></span>
+            {% else %}{{ event.event_date | date_br }}{% endif %}
+          </div></div>
+          <div class="info-item"><div class="detail-label">Horário</div><div class="detail-value">
+            {% if event.event_datetime_utc %}<span data-utc="{{ event.event_datetime_utc }}" data-fmt="time"></span>
+            {% else %}{{ event.event_time }}{% endif %}
+          </div></div>
           {% if event.platform %}<div class="info-item"><div class="detail-label">Plataforma</div><div class="detail-value">{{ event.platform }}</div></div>{% endif %}
         </div>
         {% if event.description %}

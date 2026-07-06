@@ -81,7 +81,7 @@
                       line-height:1.5;">{{ n.body }}</p>
           {% endif %}
           <div style="font-size:.75rem; color:var(--muted);">
-            {{ n.created_at[:16] | replace('T', ' ') if n.created_at else '' }}
+            {% if n.created_at %}<span data-utc="{{ n.created_at if 'Z' in n.created_at else n.created_at + 'Z' }}" data-fmt="full"></span>{% endif %}
             {% if n.resource_type and n.resource_id %}
               · <a href="{{ url_for(n.resource_type + 's.detail', **{n.resource_type + '_id': n.resource_id}) }}"
                    style="color:var(--accent); text-decoration:none;">
