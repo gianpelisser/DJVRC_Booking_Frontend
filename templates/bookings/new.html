@@ -34,8 +34,8 @@
   </div>
 
   <form method="post" id="bookingForm">
-    <!-- Fuso horário do navegador, enviado automaticamente -->
-    <input type="hidden" name="timezone" id="bookingTz" value="" />
+    <!-- Fuso horário da conta do usuário, preenchido automaticamente pelo tz.js -->
+    <input type="hidden" name="timezone" id="bookingTz" data-tz-field value="" />
 
     <!-- Quem está contratando -->
     {% if groups %}
@@ -200,8 +200,7 @@
 
 {% block scripts %}
 <script>
-// Preenche o fuso horário do navegador antes do envio
-document.getElementById('bookingTz').value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+// bookingTz é preenchido pelo tz.js via data-tz-field (usa fuso da conta, não do navegador)
 
 const BLOCKED_DJ_DATES = {{ (dj.availability | selectattr('blocked_date', 'ne', none) | map(attribute='blocked_date') | list if dj.availability else []) | tojson }};
 const dateInput = document.getElementById('eventDateInput');

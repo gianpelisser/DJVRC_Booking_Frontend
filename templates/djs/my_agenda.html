@@ -20,6 +20,7 @@
   <div class="card" style="margin-bottom:2rem;">
     <div class="card-title" style="margin-bottom:1.25rem;">➕ Adicionar evento externo</div>
     <form method="post" action="{{ url_for('djs.add_agenda_entry') }}">
+      <input type="hidden" name="timezone" data-tz-field value="" />
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
         <div style="grid-column:1/-1;">
           <label class="form-label">Nome do evento *</label>

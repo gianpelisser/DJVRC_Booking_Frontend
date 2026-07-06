@@ -103,7 +103,13 @@
                           border-radius:var(--radius-sm); padding:.3rem .75rem; font-size:.82rem;">
                 <span style="color:var(--text); font-weight:500;">{{ weekdays[a.weekday] }}</span>
                 {% if a.start_time and a.end_time %}
-                  <span style="color:var(--muted); margin-left:.35rem;">{{ a.start_time }} – {{ a.end_time }}</span>
+                  <span data-avail-start="{{ a.start_time }}"
+                        data-avail-end="{{ a.end_time }}"
+                        data-avail-tz="{{ dj.timezone or 'America/Sao_Paulo' }}"
+                        data-avail-weekday="{{ a.weekday }}">
+                    <span class="avail-time">{{ a.start_time }} – {{ a.end_time }}</span>
+                    {% if dj.timezone %}<span style="font-size:.7rem; color:var(--muted);"> ({{ dj.timezone }})</span>{% endif %}
+                  </span>
                 {% endif %}
               </div>
             {% endfor %}
