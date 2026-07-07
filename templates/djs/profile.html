@@ -85,7 +85,7 @@
         <div class="detail-section">
           <div class="detail-label">Idiomas</div>
           <p style="color:var(--text);">
-            {{ dj.languages | join(' · ') if dj.languages is iterable and dj.languages is not string else dj.languages }}
+            {{ (dj.languages | map('lang_name') | join(' · ')) if dj.languages is iterable and dj.languages is not string else (dj.languages | lang_name) }}
           </p>
         </div>
       {% endif %}

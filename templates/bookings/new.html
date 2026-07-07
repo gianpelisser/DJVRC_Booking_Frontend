@@ -128,12 +128,7 @@
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Plataforma</label>
-          <select class="form-select" name="platform">
-            <option value="">Selecione...</option>
-            {% for p in ['VRChat','VRCDN','Twitch','YouTube','Kick','Outro'] %}
-              <option>{{ p }}</option>
-            {% endfor %}
-          </select>
+          {% include "partials/platform_input.html" %}
         </div>
       </div>
       <div class="form-group">
