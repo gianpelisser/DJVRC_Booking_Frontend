@@ -95,7 +95,12 @@
                            border-radius:4px; padding:.2rem .6rem; font-size:.78rem; color:var(--text);">
                 {{ weekdays[a.weekday] }}
                 {% if a.start_time and a.end_time %}
-                  <span style="color:var(--muted);">{{ a.start_time }} – {{ a.end_time }}</span>
+                  <span data-avail-start="{{ a.start_time }}"
+                        data-avail-end="{{ a.end_time }}"
+                        data-avail-tz="{{ dj.timezone or 'America/Sao_Paulo' }}"
+                        data-avail-weekday="{{ a.weekday }}">
+                    <span class="avail-time" style="color:var(--muted);">{{ a.start_time }} – {{ a.end_time }}</span>
+                  </span>
                 {% endif %}
               </span>
             {% endfor %}
