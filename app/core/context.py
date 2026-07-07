@@ -48,6 +48,42 @@ def register_context(app):
         else:
             return f"{h}h {rest}min"
 
+    @app.template_filter("lang_name")
+    def lang_name_filter(code):
+        """Converte código de idioma (pt-BR, en-US) para nome amigável."""
+        LANGS = {
+            "pt":    "Português",
+            "pt-BR": "Português (Brasil)",
+            "pt-PT": "Português (Portugal)",
+            "en":    "Inglês",
+            "en-US": "Inglês",
+            "en-GB": "Inglês (Reino Unido)",
+            "es":    "Espanhol",
+            "es-ES": "Espanhol",
+            "es-419":"Espanhol (América Latina)",
+            "fr":    "Francês",
+            "de":    "Alemão",
+            "it":    "Italiano",
+            "ja":    "Japonês",
+            "ko":    "Coreano",
+            "zh":    "Chinês",
+            "zh-CN": "Chinês (Simplificado)",
+            "zh-TW": "Chinês (Tradicional)",
+            "ru":    "Russo",
+            "ar":    "Árabe",
+            "hi":    "Hindi",
+            "nl":    "Holandês",
+            "pl":    "Polonês",
+            "tr":    "Turco",
+            "sv":    "Sueco",
+            "no":    "Norueguês",
+            "da":    "Dinamarquês",
+            "fi":    "Finlandês",
+        }
+        if not code:
+            return ""
+        return LANGS.get(str(code).strip(), str(code).strip())
+
     @app.template_filter("date_br")
     def date_br_filter(value):
         """Converte 2025-12-31 → 31/12/2025."""
