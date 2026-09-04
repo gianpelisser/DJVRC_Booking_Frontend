@@ -30,9 +30,19 @@
       switch (fmt) {
         case 'date':  opts = { dateStyle: 'short', timeZone: DISPLAY_TZ }; break;
         case 'time':  opts = { timeStyle: 'short', timeZone: DISPLAY_TZ }; break;
-        case 'month': opts = { month: 'short', timeZone: DISPLAY_TZ }; break;
-        case 'day':   opts = { day: '2-digit', timeZone: DISPLAY_TZ }; break;
-        case 'year':  opts = { year: 'numeric', timeZone: DISPLAY_TZ }; break;
+        case 'month': {
+          const m = new Date(iso).toLocaleString('pt-BR', { month: 'short', timeZone: DISPLAY_TZ });
+          el.textContent = m.replace('.','').toUpperCase() + '.';
+          return;
+        }
+        case 'day': {
+          el.textContent = new Date(iso).toLocaleString('pt-BR', { day: '2-digit', timeZone: DISPLAY_TZ });
+          return;
+        }
+        case 'year': {
+          el.textContent = new Date(iso).toLocaleString('pt-BR', { year: 'numeric', timeZone: DISPLAY_TZ });
+          return;
+        }
         default:     opts = { dateStyle: 'short', timeStyle: 'short', timeZone: DISPLAY_TZ };
       }
       try {

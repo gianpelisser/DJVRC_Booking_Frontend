@@ -22,6 +22,9 @@
   {% if agenda %}
     <div style="display:flex; flex-direction:column; gap:.75rem;">
       {% for entry in agenda %}
+      <a href="{{ url_for('djs.dj_agenda_entry', dj_id=dj.id, entry_id=entry.id) }}"
+         style="text-decoration:none; display:block; color:inherit;"
+         class="card-hover">
       <div style="display:flex; gap:1.25rem; padding:1rem 1.25rem;
                   background:var(--bg2); border:1px solid var(--border);
                   border-radius:var(--radius-sm); align-items:flex-start;">
@@ -64,7 +67,9 @@
             {% endif %}
           </div>
           <div style="font-size:.8rem; color:var(--muted); display:flex; gap:1rem; flex-wrap:wrap;">
-            {% if not entry.event_datetime_utc %}
+            {% if entry.event_datetime_utc %}
+              <span>🕐 <span data-utc="{{ entry.event_datetime_utc }}" data-fmt="time"></span></span>
+            {% else %}
               <span>🕐 {{ entry.event_time[:5] }}</span>
             {% endif %}
             {% if entry.duration_minutes %}<span>⏱ {{ entry.duration_minutes | duracao }}</span>{% endif %}
@@ -78,6 +83,7 @@
         </div>
 
       </div>
+      </a>
       {% endfor %}
     </div>
   {% else %}
