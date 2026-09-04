@@ -27,6 +27,28 @@
           <input class="form-input" type="text" name="event_name"
                  placeholder="Ex: Live no VRChat — Clube X" required />
         </div>
+        <div style="grid-column:1/-1;">
+          <label class="form-label">Grupo organizador
+            <span style="color:var(--muted); font-weight:300;">(opcional)</span>
+          </label>
+          {% if groups %}
+            <select class="form-select" name="group_id">
+              <option value="">— Nenhum grupo —</option>
+              {% for g in groups %}
+                <option value="{{ g.id }}">{{ g.name }}</option>
+              {% endfor %}
+            </select>
+          {% else %}
+            <input type="hidden" name="group_id" value="" />
+            <div style="font-size:.83rem; color:var(--muted); padding:.6rem .85rem;
+                        background:var(--bg); border:1px solid var(--border);
+                        border-radius:var(--radius-sm);">
+              Você não tem grupos criados.
+              <a href="{{ url_for('groups.list_groups') }}" target="_blank"
+                 style="color:var(--accent);">Criar um grupo →</a>
+            </div>
+          {% endif %}
+        </div>
         <div>
           <label class="form-label">Data *</label>
           <input class="form-input" type="date" name="event_date" required />

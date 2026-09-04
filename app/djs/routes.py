@@ -62,6 +62,22 @@ def dj_agenda(dj_id):
     return render_template("djs/agenda.html", dj=dj, agenda=agenda)
 
 
+@djs_bp.get("/<int:dj_id>/agenda/<int:entry_id>")
+def dj_agenda_entry(dj_id, entry_id):
+    """Detalhe de um evento da agenda pública do DJ."""
+    dj_data = api_get(f"/djs/{dj_id}")
+    if not dj_data or not dj_data.get("success"):
+        flash("DJ não encontrado.", "danger")
+        return redirect(url_for("djs.list_djs"))
+    dj = dj_data["data"]
+    entry_data = api_get(f"/djs/{dj_id}/agenda/{entry_id}")
+    if not entry_data or not entry_data.get("success"):
+        flash("Evento não encontrado.", "danger")
+        return redirect(url_for("djs.dj_agenda", dj_id=dj_id))
+    entry = entry_data.get("data", {})
+    return render_template("djs/agenda_entry.html", dj=dj, entry=entry)
+
+
 @djs_bp.get("/me/public")
 @dj_required
 def view_my_public_profile():
@@ -207,10 +223,11 @@ def my_agenda():
     """Página de gerenciamento da agenda do DJ."""
     data = api_get("/djs/me/agenda")
     agenda = data.get("data", []) if data and data.get("success") else []
-    # Busca o id do perfil para link para agenda pública
     profile_data = api_get("/djs/me")
     dj_id = profile_data["data"]["id"] if profile_data and profile_data.get("success") else None
-    return render_template("djs/my_agenda.html", agenda=agenda, dj_id=dj_id)
+    groups_data = api_get("/groups/")
+    groups = groups_data.get("data", []) if groups_data and groups_data.get("success") else []
+    return render_template("djs/my_agenda.html", agenda=agenda, dj_id=dj_id, groups=groups)
 
 
 @djs_bp.post("/me/agenda")
@@ -230,6 +247,7 @@ def add_agenda_entry():
         "description":      form.get("description", "").strip() or None,
         "is_private":       bool(form.get("is_private")),
         "timezone":         user.get("timezone") or "America/Sao_Paulo",
+        "group_id":         int(form.get("group_id")) if form.get("group_id") else None,
     }
     data, status = api_post("/djs/me/agenda", payload)
     if status in (200, 201) and data and data.get("success"):

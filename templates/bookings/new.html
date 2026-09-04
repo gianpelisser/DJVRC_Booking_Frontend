@@ -38,20 +38,29 @@
     <input type="hidden" name="timezone" id="bookingTz" data-tz-field value="" />
 
     <!-- Quem está contratando -->
-    {% if groups %}
     <div class="card mb-3">
       <div class="card-title mb-2">Representando</div>
       <p style="font-size:.83rem; color:var(--muted); margin-bottom:.75rem;">
         Escolha qual grupo está organizando este evento, ou deixe em branco para usar seu apelido/username.
       </p>
-      <select class="form-select" name="group_id">
-        <option value="">— Nenhum grupo (usar meu apelido/nome) —</option>
-        {% for g in groups %}
-          <option value="{{ g.id }}">{{ g.name }}</option>
-        {% endfor %}
-      </select>
+      {% if groups %}
+        <select class="form-select" name="group_id">
+          <option value="">— Nenhum grupo (usar meu apelido/nome) —</option>
+          {% for g in groups %}
+            <option value="{{ g.id }}">{{ g.name }}</option>
+          {% endfor %}
+        </select>
+      {% else %}
+        <input type="hidden" name="group_id" value="" />
+        <div style="font-size:.83rem; color:var(--muted); padding:.65rem .9rem;
+                    background:var(--bg); border:1px solid var(--border);
+                    border-radius:var(--radius-sm);">
+          Você não tem grupos criados.
+          <a href="{{ url_for('groups.list_groups') }}" target="_blank"
+             style="color:var(--accent);">Criar um grupo →</a>
+        </div>
+      {% endif %}
     </div>
-    {% endif %}
 
     <div class="card mb-3">
       <div class="card-title mb-2">Dados do evento</div>
