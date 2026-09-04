@@ -9,6 +9,8 @@ build/
 
 # Env
 .env
+.env.dev
+.env.prod
 *.env.local
 
 # Docker
