@@ -28,8 +28,11 @@
       const fmt = el.dataset.fmt || 'full';
       let opts;
       switch (fmt) {
-        case 'date': opts = { dateStyle: 'short', timeZone: DISPLAY_TZ }; break;
-        case 'time': opts = { timeStyle: 'short', timeZone: DISPLAY_TZ }; break;
+        case 'date':  opts = { dateStyle: 'short', timeZone: DISPLAY_TZ }; break;
+        case 'time':  opts = { timeStyle: 'short', timeZone: DISPLAY_TZ }; break;
+        case 'month': opts = { month: 'short', timeZone: DISPLAY_TZ }; break;
+        case 'day':   opts = { day: '2-digit', timeZone: DISPLAY_TZ }; break;
+        case 'year':  opts = { year: 'numeric', timeZone: DISPLAY_TZ }; break;
         default:     opts = { dateStyle: 'short', timeStyle: 'short', timeZone: DISPLAY_TZ };
       }
       try {

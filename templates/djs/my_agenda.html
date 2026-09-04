@@ -73,20 +73,25 @@
 
         <!-- Data -->
         <div style="text-align:center; min-width:44px; flex-shrink:0;">
-          <div style="font-size:.7rem; color:var(--muted);">
-            {% if entry.event_datetime_utc %}
-              <span data-utc="{{ entry.event_datetime_utc }}" data-fmt="date"></span>
-            {% else %}
+          {% if entry.event_datetime_utc %}
+            <div style="font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px;">
+              <span data-utc="{{ entry.event_datetime_utc }}" data-fmt="month"></span>
+            </div>
+            <div style="font-size:1.6rem; font-weight:800; font-family:var(--font-d); color:var(--accent); line-height:1;">
+              <span data-utc="{{ entry.event_datetime_utc }}" data-fmt="day"></span>
+            </div>
+            <div style="font-size:.7rem; color:var(--muted);">
+              <span data-utc="{{ entry.event_datetime_utc }}" data-fmt="year"></span>
+            </div>
+          {% else %}
+            <div style="font-size:.7rem; color:var(--muted);">
               {{ entry.event_date[5:7] }}/{{ entry.event_date[:4] }}
-            {% endif %}
-          </div>
-          <div style="font-size:1.2rem; font-weight:700; font-family:var(--font-d); color:var(--accent);">
-            {% if entry.event_datetime_utc %}
-              <span data-utc="{{ entry.event_datetime_utc }}" data-fmt="date" style="font-size:1rem;"></span>
-            {% else %}
+            </div>
+            <div style="font-size:1.6rem; font-weight:800; font-family:var(--font-d); color:var(--accent); line-height:1;">
               {{ entry.event_date[8:10] }}
-            {% endif %}
-          </div>
+            </div>
+            <div style="font-size:.7rem; color:var(--muted);">{{ entry.event_date[:4] }}</div>
+          {% endif %}
         </div>
 
         <!-- Info -->
