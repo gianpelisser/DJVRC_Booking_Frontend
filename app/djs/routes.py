@@ -245,6 +245,7 @@ def add_agenda_entry():
         "duration_minutes": total_min,
         "platform":         form.get("platform", "").strip() or None,
         "description":      form.get("description", "").strip() or None,
+        "end_time":         form.get("end_time", "").strip() or None,
         "is_private":       bool(form.get("is_private")),
         "timezone":         user.get("timezone") or "America/Sao_Paulo",
         "group_id":         int(form.get("group_id")) if form.get("group_id") else None,

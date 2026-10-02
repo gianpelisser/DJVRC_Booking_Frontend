@@ -54,19 +54,20 @@
           <input class="form-input" type="date" name="event_date" required />
         </div>
         <div>
-          <label class="form-label">Horário *</label>
-          <input class="form-input" type="time" name="event_time" required />
+          <label class="form-label">Início *</label>
+          <input class="form-input" type="time" name="event_time" id="agendaStart" required />
+        </div>
+        <div>
+          <label class="form-label">Fim *</label>
+          <input class="form-input" type="time" name="end_time" id="agendaEnd" required />
+          <div class="form-hint" id="agendaDurHint" style="margin-top:.25rem;"></div>
         </div>
         <div>
           <label class="form-label">Plataforma</label>
           {% include "partials/platform_input.html" %}
         </div>
-        <div style="grid-column:1/-1;">
-          <label class="form-label">Duração *</label>
-          {% with dur_id_prefix='aDur', dur_hours=1, dur_minutes=0 %}
-            {% include "partials/duration_select.html" %}
-          {% endwith %}
-        </div>
+        <!-- duration_minutes calculado via JS -->
+        <input type="hidden" name="duration_minutes" id="agendaDurMin" value="60" />
         <div style="grid-column:1/-1;">
           <label class="form-label">Descrição (opcional)</label>
           <input class="form-input" type="text" name="description"
@@ -169,4 +170,29 @@
   {% endif %}
 
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function calcAgendaDuration() {
+  const start = document.getElementById('agendaStart').value;
+  const end   = document.getElementById('agendaEnd').value;
+  const hint  = document.getElementById('agendaDurHint');
+  const input = document.getElementById('agendaDurMin');
+  if (!start || !end) return;
+
+  let [sh, sm] = start.split(':').map(Number);
+  let [eh, em] = end.split(':').map(Number);
+  let totalMin = (eh * 60 + em) - (sh * 60 + sm);
+  if (totalMin <= 0) totalMin += 24 * 60; // passa meia-noite
+
+  input.value = totalMin;
+  const h = Math.floor(totalMin / 60), m = totalMin % 60;
+  const txt = m === 0 ? (h === 1 ? '1 hora' : `${h} horas`) : `${h}h ${m}min`;
+  hint.textContent = `Duração: ${txt}`;
+}
+
+document.getElementById('agendaStart').addEventListener('change', calcAgendaDuration);
+document.getElementById('agendaEnd').addEventListener('change',   calcAgendaDuration);
+</script>
 {% endblock %}
