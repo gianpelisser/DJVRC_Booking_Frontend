@@ -194,5 +194,10 @@ function calcAgendaDuration() {
 
 document.getElementById('agendaStart').addEventListener('change', calcAgendaDuration);
 document.getElementById('agendaEnd').addEventListener('change',   calcAgendaDuration);
+
+// Garante cálculo correto ao submeter mesmo sem interação
+document.querySelector('form').addEventListener('submit', function() {
+  calcAgendaDuration();
+});
 </script>
 {% endblock %}
